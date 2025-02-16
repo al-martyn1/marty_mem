@@ -1,0 +1,24 @@
+# Автоматически отыскиваемый файл опций утилиты umba-enum-gen
+
+# Справка по ключам командной строки umba-enum-gen: umba-enum-gen --help > umba-enum-gen-help.txt
+
+--target-language=cpp
+
+--overwrite=Y
+--base-indent=0
+--indent-increment=4
+
+--namespace-style=CamelStyle
+#--namespace-style=CppStyle
+--enum-name-style=PascalStyle
+#--enum-values-style=CamelStyle
+--enum-values-style=PascalStyle
+--enum-serialize-style=All
+
+
+--enum-flags=type-decl,serialize,deserialize,lowercase,enum-class
+#--enum-flags=enum-class
+
+--namespace=marty/mem
+--override-template-parameter=EnumNameFormat:E$(ENAMNAME)
+#--override-template-parameter=EnumFlagsNameFormat:E$(ENAMNAME)

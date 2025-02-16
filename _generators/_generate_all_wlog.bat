@@ -1,0 +1,1 @@
+call _generate_all.bat > _generate_all.log 2>&1

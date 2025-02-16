@@ -1,0 +1,7 @@
+// Endianness
+unknown,invalid,undefined = -1
+littleEndian              = 0
+bigEndian
+leMiddleEndian
+beMiddleEndian
+middleEndian

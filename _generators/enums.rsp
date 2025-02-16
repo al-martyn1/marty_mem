@@ -1,0 +1,14 @@
+# Лежит тут для примера .rsp-файла, не используется
+# Опции лежат в umba-enum-gen-options.txt, который ищется вверх по иерархии, наиная с текущего каталога
+
+--includes=false
+--overwrite=Y
+--base-indent=0
+--indent-increment=4
+
+--namespace-style=CppStyle
+--enum-name-style=PascalStyle
+--enum-values-style=CamelStyle
+--enum-serialize-style=All
+
+--override-template-parameter=EnumNameFormat:E$(ENAMNAME)
