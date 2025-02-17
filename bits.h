@@ -215,7 +215,7 @@ template<> uint64_t makeMask<63>() { return 0xFFFFFFFFFFFFFFFFull; }
 
 //----------------------------------------------------------------------------
 inline
-constexpr uint64_t makeMask(int nBits)
+constexpr uint64_t makeMask(unsigned nBits)
 {
     return (nBits==0)
            ? makeMask<0>()

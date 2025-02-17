@@ -43,12 +43,24 @@ struct SegmentedAddressTraits
 //----------------------------------------------------------------------------
 class SegmentedAddress
 {
-    uint64_t                 m_segment     = 0;
-    uint64_t                 m_offset      = 0;
-    uint64_t                 m_incSize     = 1;
-    SegmentedAddressTraits   m_traits         ;
-    uint64_t                 m_segmentMask = 0;
-    uint64_t                 m_offsetMask  = 0;
+    uint64_t                 m_segment      = 0;
+    uint64_t                 m_offset       = 0;
+    uint64_t                 m_incSize      = 1;
+    SegmentedAddressTraits   m_traits          ;
+    uint64_t                 m_segmentMask  = 0;
+    uint64_t                 m_offsetMask   = 0;
+    unsigned                 m_segmentShift = 4;
+
+    
+
+    // See also: A look back at memory models in 16-bit MS-DOS - https://devblogs.microsoft.com/oldnewthing/20200728-00/?p=104012
+    // See also: On memory allocations larger than 64KB on 16-bit Windows - https://devblogs.microsoft.com/oldnewthing/20171113-00/?p=97386
+    // See also: Revisiting the DOS memory models - https://blogsystem5.substack.com/p/dos-memory-models
+
+    // Conclusion: When the offset wraps around, you add 0x1000 to the segment. 
+    // In MS-DOS, huge pointers operated by putting the upper 16 bits of the 20-bit address in the segment and putting the remaining 4 bits in the offset. The offset of a huge pointer in MS-DOS was always less than 16.
+    // В MS-DOS огромные указатели работали, помещая верхние 16 бит 20-битного адреса в сегмент, а оставшиеся 4 бита — в смещение. Смещение огромного указателя в MS-DOS всегда было меньше 16.
+    // The __AHINCR variable is a variable exported from KERNEL. In real mode Windows, the value is 0x1000. In protected mode Windows, the value is 0x0008. When your program reaches the end of a 64KB block, it uses the __AHINCR value to decide how much to increment the segment/selector by in order to reach the next 64KB block. 
 
     void inc()
     {
@@ -77,7 +89,7 @@ public:
 
     uint64_t getLinearAddress() const
     {
-        return (m_segment&m_segmentMask) + (m_offset&m_offsetMask);
+        return ((m_segment&m_segmentMask)<<m_segmentShift) + (m_offset&m_offsetMask);
     }
 
     SegmentedAddress() {}
@@ -87,8 +99,9 @@ public:
     , m_offset (offs)
     , m_incSize(inc)
     , m_traits (traits)
-    , m_segmentMask(bits::makeMask(m_traits.segmentBitSize))
-    , m_offsetMask (bits::makeMask(m_traits.offsetBitSize))
+    , m_segmentMask (bits::makeMask(traits.segmentBitSize))
+    , m_offsetMask  (bits::makeMask(traits.offsetBitSize))
+    , m_segmentShift(bits::getMsbPower(traits.paragraphSize))
     {
         MARTY_MEM_ASSERT(checkTraits(m_traits));
         MARTY_MEM_ASSERT(checkIncrement(incSize));

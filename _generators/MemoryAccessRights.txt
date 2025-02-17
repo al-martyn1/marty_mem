@@ -1,0 +1,9 @@
+// MemoryAccessRights
+unknown,invalid,undefined = -1
+noAccess              = 0
+read,readOnly         = 1
+write,writeOnly       = 2
+execute,executeOnly   = 4
+readWrite             = 3
+executeRead           = 5
+executeReadWrite      = 7

@@ -1,0 +1,5 @@
+// MemoryOptionFlags
+unknown,invalid,undefined = -1
+defaultFF         = 1
+preciseHitMiss
+throwOnHitMiss

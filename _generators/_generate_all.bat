@@ -33,8 +33,11 @@
 @set FLAGS=--enum-flags=flags
 
 umba-enum-gen %GEN_OPTS% %HEX2% %TPL_OVERRIDE% %SNIPPETOPTIONS_GEN_FLAGS%              ^
-    %UINT32% %HEX4% -E=Endianness           -F=@Endianness.txt                         ^
+    %UINT32% %HEX4% -E=Endianness                -F=@Endianness.txt                    ^
+    %UINT32% %HEX4% -E=MemoryAccessResultCode    -F=@MemoryAccessResultCode.txt        ^
     %FLAGS%                                                                            ^
+    %UINT32% %HEX4% -E=MemoryOptionFlags         -F=@MemoryOptionFlags.txt             ^
+    %UINT32% %HEX4% -E=MemoryAccessRights        -F=@MemoryAccessRights.txt            ^
 ..\enums.h
 
 @rem     %UINT32% %HEX4% -E=ParserWaitForTokenFlags       -F=@ParserWaitForTokenFlags.txt

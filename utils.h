@@ -23,15 +23,30 @@
 
 
 //----------------------------------------------------------------------------
+#if !defined(MARTY_USED)
+
+    #if defined(UMBA_USED)
+
+        #define MARTY_USED(x)    UMBA_USED(x)
+
+    #else
+    
+        #define MARTY_USED(x)    (void)(x)
+
+    #endif
+
+#endif
+
+//----------------------------------------------------------------------------
+
+
+
+//----------------------------------------------------------------------------
 // #include "marty_mem/utils.h"
 // marty::mem::utils::
 namespace marty{
 namespace mem{
 namespace utils{
-
-//----------------------------------------------------------------------------
-
-
 
 //----------------------------------------------------------------------------
 
@@ -110,31 +125,6 @@ template<typename StringType=std::string> StringType makeHexString(uint8_t  val)
 template<typename StringType=std::string> StringType makeHexString( int8_t  val) { return makeHexString<StringType>(uint64_t(val), sizeof(val)); }
 
 //----------------------------------------------------------------------------
-
-
-
-//----------------------------------------------------------------------------
-inline
-std::uint64_t makeByteSizeMask(std::size_t size)
-{
-    MARTY_MEM_ASSERT(size>=1 && size<=8);
-
-    switch(size)
-    {
-        case 1 : return std::uint64_t(0x00000000000000FFull);
-        case 2 : return std::uint64_t(0x000000000000FFFFull);
-        case 3 : return std::uint64_t(0x0000000000FFFFFFull);
-        case 4 : return std::uint64_t(0x00000000FFFFFFFFull);
-        case 5 : return std::uint64_t(0x000000FFFFFFFFFFull);
-        case 6 : return std::uint64_t(0x0000FFFFFFFFFFFFull);
-        case 7 : return std::uint64_t(0x00FFFFFFFFFFFFFFull);
-        default: return std::uint64_t(0xFFFFFFFFFFFFFFFFull);
-    }
-}
-
-
-
-
 
 
 
