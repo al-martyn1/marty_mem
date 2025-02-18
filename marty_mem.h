@@ -49,7 +49,7 @@ struct MemoryTraits
 struct MemPara
 {
     uint16_t   validBits = 0; // единичный бит говорит, что память была ранее присвоена, 0 - память неинициализирована. Младшие биты соответствуют младшим адресам
-    byte_t     para[16]  = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+    byte_t     bytes[16]  = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
 }; // struct MemPara
 
@@ -60,12 +60,20 @@ struct MemPara
 //----------------------------------------------------------------------------
 class Memory
 {
+    using memory_map_type = std::unordered_map<uint64_t, MemPara>;
 
-    std::unordered_map<uint64_t, MemPara>   m_memMap;
-    MemoryTraits                            m_memoryTraits;
+    memory_map_type                             m_memMap;
+    MemoryTraits                                m_memoryTraits;
 
-    uint64_t                                m_addressValidMin = 0xFFFFFFFFFFFFFFFFull;
-    uint64_t                                m_addressValidMax = 0;
+    // Кешируем итераторы, чтобы при последовательном доступе поиск не производился
+    // Да, он вроде бы линейный, но тем не менее
+    mutable memory_map_type::const_iterator     m_cachedReadIter ;
+    mutable memory_map_type::iterator           m_cachedWriteIter;
+
+    uint64_t                                    m_addressValidMin = 0xFFFFFFFFFFFFFFFFull;
+    uint64_t                                    m_addressValidMax = 0;
+
+
 
     static bool checkTraits(const MemoryTraits &traits)
     {
@@ -141,53 +149,218 @@ class Memory
     std::size_t calcMemParaAlignedIndex(uint64_t addr, uint64_t size)
     {
         uint64_t idx = addr&0x0Full;
-        idx &= ~calcMemParaAlignedIndexClearBitsMask(size); // TODO: Проверить
+        auto alignmentBits = calcMemParaAlignedIndexClearBitsMask(size);
+        idx &= ~alignmentBits; // TODO: Проверить
         return std::size_t(idx);
+    }
+
+    memory_map_type::const_iterator getReadMemIterator(uint64_t addr) const
+    {
+        if (m_cachedReadIter==m_memMap.end())
+        {
+            m_cachedReadIter = m_memMap.find(calcParaAddress(addr));
+            return m_cachedReadIter;
+        }
+        else if (m_cachedReadIter->first==calcParaAddress(addr))
+        {
+            return m_cachedReadIter;
+        }
+        else
+        {
+            m_cachedReadIter = m_memMap.find(calcParaAddress(addr));
+            return m_cachedReadIter;
+        }
+    }
+
+    memory_map_type::iterator getWriteMemIterator(uint64_t addr)
+    {
+        if (m_cachedWriteIter==m_memMap.end())
+        {
+            m_cachedWriteIter = m_memMap.find(calcParaAddress(addr));
+            return m_cachedWriteIter;
+        }
+        else if (m_cachedWriteIter->first==calcParaAddress(addr))
+        {
+            return m_cachedWriteIter;
+        }
+        else
+        {
+            m_cachedWriteIter = m_memMap.find(calcParaAddress(addr));
+            return m_cachedWriteIter;
+        }
+    }
+
+    static
+    bool checkAddressAligned(uint64_t addr, uint64_t size)
+    {
+        auto alignmentBits = calcMemParaAlignedIndexClearBitsMask(size);
+        return ((addr&alignmentBits)==0);
     }
 
 
     // Не кидает исключений, не производит конвертацию в/из big-endian
-    MemoryAccessResultCode readAlignedImpl(uint64_t *pResVal, uint64_t addr, uint64_t size, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    MemoryAccessResultCode readAlignedImpl(uint64_t *pResVal, uint64_t addr, uint64_t size, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
     {
-        auto res = checkAccessRights(addr, sizeof(*pVal), requestedMode);
+        auto res = checkAccessRights(addr, sizeof(*pResVal), requestedMode);
         if (res!=MemoryAccessResultCode::accessGranted)
             return res;
 
-        if ((addr&calcMemParaAlignedIndexClearBitsMask(size))!=0)
+        if (!checkAddressAligned(addr, size))
             return MemoryAccessResultCode::unalignedMemoryAccess; // TODO: Проверить
 
-
-        uint64_t paraAddr = calcParaAddress(addr);
-
-        std::unordered_map<uint64_t, MemPara>::const_iterator it = m_memMap.find(paraAddr);
+        auto it = getReadMemIterator(addr);
         if (it==m_memMap.end())
-            return MemoryAccessResultCode::unassignedMemoryAccess;
+        {
+            if ((memoryOptionFlags&MemoryOptionFlags::errorOnHitMiss)!=0) // Иначе - допустимо, и вернём на месте пустых байт 0 или 0xFF
+            {
+                return MemoryAccessResultCode::unassignedMemoryAccess;
+            }
+            else
+            {
+                if (pResVal)
+                {
+                    *pResVal = 0;
+                    if ((memoryOptionFlags&MemoryOptionFlags::defaultFf)!=0) // Врзвращаем число, байты которого заполнены 0xFF
+                        *pResVal = makeByteSizeMask(size);
+                }
 
+                return MemoryAccessResultCode::accessGranted;
+            }
+        }
 
+        // Забиваем на preciseHitMiss
+        auto alignedValueValidBits = getAlignedValueValidBits(addr, size);
+        if ((it->second.validBits&alignedValueValidBits)!=alignedValueValidBits) // всё биты годные?
+        {
+            if ((memoryOptionFlags&MemoryOptionFlags::errorOnHitMiss)!=0) // Иначе - допустимо, и вернём на месте пустых байт 0 или 0xFF
+            {
+                return MemoryAccessResultCode::unassignedMemoryAccess; 
+            }
+        }
 
-        //uint16_t getAlignedValueValidBits(uint64_t addr, uint64_t size)
+        if (!pResVal)
+            return MemoryAccessResultCode::accessGranted;
 
-        
+        uint64_t resVal = 0;
+
+        auto idxBase = calcMemParaAlignedIndex(addr, size);
+        for(std::size_t i=0u; i!=size; ++i, resVal<<=8)
+        {
+            resVal |= it->second.bytes[idxBase+i];
+        }
+
+        *pResVal = resVal;
+
+        return MemoryAccessResultCode::accessGranted;
     }
 
+    // Не кидает исключений, не производит конвертацию в/из big-endian
+    MemoryAccessResultCode writeAlignedImpl(uint64_t val, uint64_t addr, uint64_t size, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::write)
+    {
+        auto res = checkAccessRights(addr, sizeof(val), requestedMode);
+        if (res!=MemoryAccessResultCode::accessGranted)
+            return res;
 
-    // MemoryOptionFlags    memoryOptionFlags  = MemoryOptionFlags::preciseHitMiss | MemoryOptionFlags::throwOnHitMiss | MemoryOptionFlags::defaultFF;
+        if (!checkAddressAligned(addr, size))
+            return MemoryAccessResultCode::unalignedMemoryAccess; // TODO: Проверить
 
-    // uint64_t calcParaAddress(uint64_t addr)
-    // uint16_t getAlignedValueValidBits<uint32_t>(uint64_t addr)
+        auto it = getWriteMemIterator(addr); // Всегда дёргаем итератор
+
+        if ((memoryOptionFlags&MemoryOptionFlags::writeSimulate)!=0)
+        {
+            return MemoryAccessResultCode::accessGranted; // Фактическую запись не производим
+        }
+
+        if (it==m_memMap.end())
+        {
+            MemPara mp;
+            mp.validBits = 0;
+            uint8_t fill = ((m_memoryTraits.memoryOptionFlags&MemoryOptionFlags::defaultFF)!=0) ? uint8_t(0xFFu) : uint8_t(0u);
+            // m_memoryTraits.memoryOptionFlags  = MemoryOptionFlags::preciseHitMiss | MemoryOptionFlags::throwOnHitMiss | MemoryOptionFlags::defaultFF;
+            for(auto i=0u; i!=16u; ++i)
+            {
+                mp.bytes[i] = fill;
+            }
+
+            auto p = m_memMap.insert(std::make_pair(calcParaAddress(addr), mp));
+            it = m_cachedWriteIter = p.first;
+        }
+
+        // Обновляем диапазон адресов
+        m_addressValidMin = std::min(m_addressValidMin, addr);
+        m_addressValidMax = std::max(m_addressValidMin, addr+size-1u);
+
+        // Ставим биты валидности
+        auto alignedValueValidBits = getAlignedValueValidBits(addr, size);
+        it->second.validBits |= alignedValueValidBits;
+
+        auto idxBase = calcMemParaAlignedIndex(addr, size);
+        for(std::size_t i=0u; i!=size; ++i, val>>=8)
+        {
+            it->second.bytes[idxBase+i] = uint8_t(val);
+        }
+
+        return MemoryAccessResultCode::accessGranted;
+    }
 
 
 
 public:
 
-    Memory() {}
+    Memory() : m_memMap(), m_cachedReadIter(m_memMap.end()), m_cachedWriteIter(m_memMap.end()) {}
 
-    Memory(const MemoryTraits &memTraits) : m_memMap(), m_memoryTraits(memTraits)
+    Memory(const MemoryTraits &memTraits)
+    : m_memMap(), m_memoryTraits(memTraits)
+    , m_cachedReadIter(m_memMap.end()), m_cachedWriteIter(m_memMap.end())
     {
         // check traits here
         MARTY_MEM_ASSERT(checkTraits(m_memoryTraits));
-
     }
+
+    Memory(const Memory &other)
+    : m_memMap(other.m_memMap), m_memoryTraits(other.m_memoryTraits)
+    , m_cachedReadIter(m_memMap.end()), m_cachedWriteIter(m_memMap.end())
+    , m_addressValidMin(other.m_addressValidMin)
+    , m_addressValidMax(other.m_addressValidMax)
+    {}
+
+    Memory& operator=(const Memory &other)
+    {
+        if (&other==this)
+            return *this;
+
+        m_memMap = other.m_memMap;
+        m_memoryTraits = other.m_memoryTraits;
+        m_cachedReadIter  = m_memMap.end();
+        m_cachedWriteIter = m_memMap.end();
+        m_addressValidMin = other.m_addressValidMin;
+        m_addressValidMax = other.m_addressValidMax;
+
+        return *this;
+    }
+
+    Memory(Memory && other)
+    : m_memMap(std::exchange(other.m_memMap, memory_map_type()))
+    , m_memoryTraits(std::exchange(other.m_memoryTraits, MemoryTraits()))
+    , m_cachedReadIter(std::exchange(other.m_memoryTraits, m_memMap.end()))
+    , m_cachedWriteIter(std::exchange(other.m_memoryTraits, m_memMap.end()))
+    , m_addressValidMin(std::exchange(other.m_addressValidMin, 0xFFFFFFFFFFFFFFFFull))
+    , m_addressValidMax(std::exchange(other.m_addressValidMax, 0))
+    {
+    }
+
+    Memory& operator=(Memory && other)
+    {
+        std::exchange(m_memMap, other.m_memMap);
+        std::exchange(m_memoryTraits, other.m_memoryTraits);
+        std::exchange(m_cachedReadIter, other.m_memoryTraits);
+        std::exchange(m_cachedWriteIter, other.m_memoryTraits);
+        std::exchange(m_addressValidMin, other.m_addressValidMin);
+        std::exchange(m_addressValidMax, other.m_addressValidMax);
+
+        return *this;
+    }
+
 
     virtual MemoryAccessResultCode checkAccessRights(uint64_t addr, uint64_t size, MemoryAccessRights requestedMode) const
     {
@@ -222,17 +395,111 @@ public:
 
 
 
+    template< typename IntType, typename std::enable_if< std::is_integral< EnumType >::value, bool>::type = true >
+    MemoryAccessResultCode read(IntType *pResVal, uint64_t addr, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    {
+        uint64_t val64 = 0;
+        if (checkAddressAligned(addr, size))
+        {
+            auto res = readAlignedImpl(&val64, addr, sizeof(IntType), memoryOptionFlags, requestedMode);
+            if (res!=MemoryAccessResultCode::accessGranted)
+                return res;
+
+        }
+        else // Собираем побайтно
+        {
+            if ((memoryOptionFlags&MemoryOptionFlags::restrictUnalignedAccess)!=0) // Разрешен только выровненный доступ?
+                return MemoryAccessResultCode::unalignedMemoryAccess; // Тогда облом
+
+            std::size_t size = sizeof(IntType);
+            for(auto i=0u; i!=size; ++i, ++addr, val64<<=8;)
+            {
+                uint8_t byte = 0;
+                auto res = read(&byte, addr, memoryOptionFlags, requestedMode);
+                if (res!=MemoryAccessResultCode::accessGranted)
+                    return res;
+                val64 |= byte;
+            }
+
+        }
+
+        if (pResVal)
+        {
+            *pResVal = IntType(val64);
+            if (m_memoryTraits.endianness==Endianness::bigEndian)
+            {
+                *pResVal = bits::swapBytes(*pResVal);
+            }
+        }
+
+        return MemoryAccessResultCode::accessGranted;
+    }
+
+    template< typename IntType, typename std::enable_if< std::is_integral< EnumType >::value, bool>::type = true >
+    MemoryAccessResultCode write(IntType val, uint64_t addr, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    {
+        memoryOptionFlags &= MemoryOptionFlags::writeSimulate; // Чтобы случайно не просочилось
+
+        if (m_memoryTraits.endianness==Endianness::bigEndian)
+        {
+            val = bits::swapBytes(val);
+        }
+
+        uint64_t val64 = uint64_t(val);
+
+        if (checkAddressAligned(addr, size))
+        {
+            return writeAlignedImpl(val64, addr, sizeof(IntType), memoryOptionFlags, requestedMode);
+        }
+
+        if ((memoryOptionFlags&MemoryOptionFlags::restrictUnalignedAccess)!=0) // Разрешен только выровненный доступ?
+            return MemoryAccessResultCode::unalignedMemoryAccess; // Тогда облом
 
 
+        // А вот тут надо побайтно писать.
 
+        // Для начала цикл в холостую - если какая ошибка выскочит, то ничего фактически изменено не будет
 
+        uint64_t orgAddr  = addr;
+        uint64_t orgVal64 = val64;
+        std::size_t size = sizeof(IntType);
+        for(auto i=0u; i!=size; ++i, ++addr, val64>>=8;)
+        {
+            auto res = writeAlignedImpl(val64, addr, 1, memoryOptionFlags|MemoryOptionFlags::writeSimulate, requestedMode);
+            if (res!=MemoryAccessResultCode::accessGranted)
+                return res;
+        }
+
+        addr  = orgAddr ;
+        val64 = orgVal64;
+        for(auto i=0u; i!=size; ++i, ++addr, val64>>=8;)
+        {
+            // Результат можно не проверять
+            writeAlignedImpl(val64, addr, 1, memoryOptionFlags, requestedMode);
+        }
+
+        return MemoryAccessResultCode::accessGranted;
+
+    }
+
+    template< typename IntType, typename std::enable_if< std::is_integral< EnumType >::value, bool>::type = true >
+    MemoryAccessResultCode read(IntType *pResVal, uint64_t addr, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    {
+        return read(pResVal, addr, m_memoryTraits.memoryOptionFlags, requestedMode);
+    }
+
+    template< typename IntType, typename std::enable_if< std::is_integral< EnumType >::value, bool>::type = true >
+    MemoryAccessResultCode write(IntType val, uint64_t addr, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    {
+        return write(val, addr, m_memoryTraits.memoryOptionFlags, requestedMode);
+    }
 
 
 
 }; // class Memory
 
-// unaligned access невыровненный доступ
-// aligned access   согласованный доступ
+//----------------------------------------------------------------------------
+
 
 
 //----------------------------------------------------------------------------

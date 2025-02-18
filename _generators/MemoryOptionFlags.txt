@@ -1,5 +1,11 @@
 // MemoryOptionFlags
 unknown,invalid,undefined = -1
-defaultFF         = 1
-preciseHitMiss
-throwOnHitMiss
+none              = 0
+defaultFF         = 1      // Возвращает 0xFF для неинициализированной памяти, если разрешено, иначе возвращается 0
+writeSimulate              // Симуляция записи без самой записи и без обновления мин-макс используемых адресов
+errorOnHitMiss             // Возвращает MemoryAccessResultCode::unassignedMemoryAccess, если память не была ранее записана/инициализирована
+
+# disallow unaligned access - запретить невыровненный доступ? or restrict?
+restrictUnalignedAccess    // Запретить (ограничить) невыровненный доступ
+
+# preciseHitMiss
