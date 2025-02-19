@@ -30,6 +30,8 @@ using uint64_t   = std::uint64_t;
 
 using byte_t     = uint8_t; // Наш собственный алиас
 
+using ptrdiff_t   = std::ptrdiff_t;
+
 
 template<typename IntType>
 const char* getFixedSizeTypeName()

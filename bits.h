@@ -125,88 +125,89 @@ uint64_t makeByteSizeMask(std::size_t n)
 }
 
 //----------------------------------------------------------------------------
-template<int NumBits> uint64_t makeMask() { return 0; }
+template<unsigned NumBits> constexpr uint64_t makeMask() { return 0; }
 
-template<> uint64_t makeMask< 0>() { return 0x0000000000000001ull; }
-template<> uint64_t makeMask< 1>() { return 0x0000000000000003ull; }
-template<> uint64_t makeMask< 2>() { return 0x0000000000000007ull; }
-template<> uint64_t makeMask< 3>() { return 0x000000000000000Full; }
+template<> constexpr uint64_t makeMask< 0>() { return 0x0000000000000000ull; }
 
-template<> uint64_t makeMask< 4>() { return 0x000000000000001Full; }
-template<> uint64_t makeMask< 5>() { return 0x000000000000003Full; }
-template<> uint64_t makeMask< 6>() { return 0x000000000000007Full; }
-template<> uint64_t makeMask< 7>() { return 0x00000000000000FFull; }
+template<> constexpr uint64_t makeMask< 1>() { return 0x0000000000000001ull; }
+template<> constexpr uint64_t makeMask< 2>() { return 0x0000000000000003ull; }
+template<> constexpr uint64_t makeMask< 3>() { return 0x0000000000000007ull; }
+template<> constexpr uint64_t makeMask< 4>() { return 0x000000000000000Full; }
 
-template<> uint64_t makeMask< 8>() { return 0x00000000000001FFull; }
-template<> uint64_t makeMask< 9>() { return 0x00000000000003FFull; }
-template<> uint64_t makeMask<10>() { return 0x00000000000007FFull; }
-template<> uint64_t makeMask<11>() { return 0x0000000000000FFFull; }
+template<> constexpr uint64_t makeMask< 5>() { return 0x000000000000001Full; }
+template<> constexpr uint64_t makeMask< 6>() { return 0x000000000000003Full; }
+template<> constexpr uint64_t makeMask< 7>() { return 0x000000000000007Full; }
+template<> constexpr uint64_t makeMask< 8>() { return 0x00000000000000FFull; }
 
-template<> uint64_t makeMask<12>() { return 0x0000000000001FFFull; }
-template<> uint64_t makeMask<13>() { return 0x0000000000003FFFull; }
-template<> uint64_t makeMask<14>() { return 0x0000000000007FFFull; }
-template<> uint64_t makeMask<15>() { return 0x000000000000FFFFull; }
+template<> constexpr uint64_t makeMask< 9>() { return 0x00000000000001FFull; }
+template<> constexpr uint64_t makeMask<10>() { return 0x00000000000003FFull; }
+template<> constexpr uint64_t makeMask<11>() { return 0x00000000000007FFull; }
+template<> constexpr uint64_t makeMask<12>() { return 0x0000000000000FFFull; }
 
-template<> uint64_t makeMask<16>() { return 0x000000000001FFFFull; }
-template<> uint64_t makeMask<17>() { return 0x000000000003FFFFull; }
-template<> uint64_t makeMask<18>() { return 0x000000000007FFFFull; }
-template<> uint64_t makeMask<19>() { return 0x00000000000FFFFFull; }
+template<> constexpr uint64_t makeMask<13>() { return 0x0000000000001FFFull; }
+template<> constexpr uint64_t makeMask<14>() { return 0x0000000000003FFFull; }
+template<> constexpr uint64_t makeMask<15>() { return 0x0000000000007FFFull; }
+template<> constexpr uint64_t makeMask<16>() { return 0x000000000000FFFFull; }
 
-template<> uint64_t makeMask<20>() { return 0x00000000001FFFFFull; }
-template<> uint64_t makeMask<21>() { return 0x00000000003FFFFFull; }
-template<> uint64_t makeMask<22>() { return 0x00000000007FFFFFull; }
-template<> uint64_t makeMask<23>() { return 0x0000000000FFFFFFull; }
+template<> constexpr uint64_t makeMask<17>() { return 0x000000000001FFFFull; }
+template<> constexpr uint64_t makeMask<18>() { return 0x000000000003FFFFull; }
+template<> constexpr uint64_t makeMask<19>() { return 0x000000000007FFFFull; }
+template<> constexpr uint64_t makeMask<20>() { return 0x00000000000FFFFFull; }
 
-template<> uint64_t makeMask<24>() { return 0x0000000001FFFFFFull; }
-template<> uint64_t makeMask<25>() { return 0x0000000003FFFFFFull; }
-template<> uint64_t makeMask<26>() { return 0x0000000007FFFFFFull; }
-template<> uint64_t makeMask<27>() { return 0x000000000FFFFFFFull; }
+template<> constexpr uint64_t makeMask<21>() { return 0x00000000001FFFFFull; }
+template<> constexpr uint64_t makeMask<22>() { return 0x00000000003FFFFFull; }
+template<> constexpr uint64_t makeMask<23>() { return 0x00000000007FFFFFull; }
+template<> constexpr uint64_t makeMask<24>() { return 0x0000000000FFFFFFull; }
 
-template<> uint64_t makeMask<28>() { return 0x000000001FFFFFFFull; }
-template<> uint64_t makeMask<29>() { return 0x000000003FFFFFFFull; }
-template<> uint64_t makeMask<30>() { return 0x000000007FFFFFFFull; }
-template<> uint64_t makeMask<31>() { return 0x00000000FFFFFFFFull; }
+template<> constexpr uint64_t makeMask<25>() { return 0x0000000001FFFFFFull; }
+template<> constexpr uint64_t makeMask<26>() { return 0x0000000003FFFFFFull; }
+template<> constexpr uint64_t makeMask<27>() { return 0x0000000007FFFFFFull; }
+template<> constexpr uint64_t makeMask<28>() { return 0x000000000FFFFFFFull; }
 
+template<> constexpr uint64_t makeMask<29>() { return 0x000000001FFFFFFFull; }
+template<> constexpr uint64_t makeMask<30>() { return 0x000000003FFFFFFFull; }
+template<> constexpr uint64_t makeMask<31>() { return 0x000000007FFFFFFFull; }
+template<> constexpr uint64_t makeMask<32>() { return 0x00000000FFFFFFFFull; }
 
-template<> uint64_t makeMask<32>() { return 0x00000001FFFFFFFFull; }
-template<> uint64_t makeMask<33>() { return 0x00000003FFFFFFFFull; }
-template<> uint64_t makeMask<34>() { return 0x00000007FFFFFFFFull; }
-template<> uint64_t makeMask<35>() { return 0x0000000FFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<33>() { return 0x00000001FFFFFFFFull; }
+template<> constexpr uint64_t makeMask<34>() { return 0x00000003FFFFFFFFull; }
+template<> constexpr uint64_t makeMask<35>() { return 0x00000007FFFFFFFFull; }
+template<> constexpr uint64_t makeMask<36>() { return 0x0000000FFFFFFFFFull; }
 
-template<> uint64_t makeMask<36>() { return 0x0000001FFFFFFFFFull; }
-template<> uint64_t makeMask<37>() { return 0x0000003FFFFFFFFFull; }
-template<> uint64_t makeMask<38>() { return 0x0000007FFFFFFFFFull; }
-template<> uint64_t makeMask<39>() { return 0x000000FFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<37>() { return 0x0000001FFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<38>() { return 0x0000003FFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<39>() { return 0x0000007FFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<40>() { return 0x000000FFFFFFFFFFull; }
 
-template<> uint64_t makeMask<40>() { return 0x000001FFFFFFFFFFull; }
-template<> uint64_t makeMask<41>() { return 0x000003FFFFFFFFFFull; }
-template<> uint64_t makeMask<42>() { return 0x000007FFFFFFFFFFull; }
-template<> uint64_t makeMask<43>() { return 0x00000FFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<41>() { return 0x000001FFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<42>() { return 0x000003FFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<43>() { return 0x000007FFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<44>() { return 0x00000FFFFFFFFFFFull; }
 
-template<> uint64_t makeMask<44>() { return 0x00001FFFFFFFFFFFull; }
-template<> uint64_t makeMask<45>() { return 0x00003FFFFFFFFFFFull; }
-template<> uint64_t makeMask<46>() { return 0x00007FFFFFFFFFFFull; }
-template<> uint64_t makeMask<47>() { return 0x0000FFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<45>() { return 0x00001FFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<46>() { return 0x00003FFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<47>() { return 0x00007FFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<48>() { return 0x0000FFFFFFFFFFFFull; }
 
-template<> uint64_t makeMask<48>() { return 0x0001FFFFFFFFFFFFull; }
-template<> uint64_t makeMask<49>() { return 0x0003FFFFFFFFFFFFull; }
-template<> uint64_t makeMask<50>() { return 0x0007FFFFFFFFFFFFull; }
-template<> uint64_t makeMask<51>() { return 0x000FFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<49>() { return 0x0001FFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<50>() { return 0x0003FFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<51>() { return 0x0007FFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<52>() { return 0x000FFFFFFFFFFFFFull; }
 
-template<> uint64_t makeMask<52>() { return 0x001FFFFFFFFFFFFFull; }
-template<> uint64_t makeMask<53>() { return 0x003FFFFFFFFFFFFFull; }
-template<> uint64_t makeMask<54>() { return 0x007FFFFFFFFFFFFFull; }
-template<> uint64_t makeMask<55>() { return 0x00FFFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<53>() { return 0x001FFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<54>() { return 0x003FFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<55>() { return 0x007FFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<56>() { return 0x00FFFFFFFFFFFFFFull; }
 
-template<> uint64_t makeMask<56>() { return 0x01FFFFFFFFFFFFFFull; }
-template<> uint64_t makeMask<57>() { return 0x03FFFFFFFFFFFFFFull; }
-template<> uint64_t makeMask<58>() { return 0x07FFFFFFFFFFFFFFull; }
-template<> uint64_t makeMask<59>() { return 0x0FFFFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<57>() { return 0x01FFFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<58>() { return 0x03FFFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<59>() { return 0x07FFFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<60>() { return 0x0FFFFFFFFFFFFFFFull; }
 
-template<> uint64_t makeMask<60>() { return 0x1FFFFFFFFFFFFFFFull; }
-template<> uint64_t makeMask<61>() { return 0x3FFFFFFFFFFFFFFFull; }
-template<> uint64_t makeMask<62>() { return 0x7FFFFFFFFFFFFFFFull; }
-template<> uint64_t makeMask<63>() { return 0xFFFFFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<61>() { return 0x1FFFFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<62>() { return 0x3FFFFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<63>() { return 0x7FFFFFFFFFFFFFFFull; }
+template<> constexpr uint64_t makeMask<64>() { return 0xFFFFFFFFFFFFFFFFull; }
 
 
 //----------------------------------------------------------------------------
@@ -343,7 +344,9 @@ constexpr uint64_t makeMask(unsigned nBits)
                                                                                                                                      ? makeMask<61>()
                                                                                                                                      : (nBits==62)
                                                                                                                                        ? makeMask<62>()
-                                                                                                                                       : makeMask<63>()
+                                                                                                                                       : (nBits==63)
+                                                                                                                                         ? makeMask<63>()
+                                                                                                                                         : makeMask<64>()
            ;
 
     // uint610_t res = 0u;
