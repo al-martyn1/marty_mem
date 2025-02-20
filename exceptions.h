@@ -64,6 +64,7 @@ MARTY_MEM_DECLARE_EXCEPTION_CLASS(base_error, std::runtime_error);
     MARTY_MEM_DECLARE_EXCEPTION_CLASS(invalid_value, base_error);
     MARTY_MEM_DECLARE_EXCEPTION_CLASS(unaligned_iterator, base_error);
     MARTY_MEM_DECLARE_EXCEPTION_CLASS(invalid_address_difference, base_error);
+    MARTY_MEM_DECLARE_EXCEPTION_CLASS(incompatible_address_pointers, base_error);
     MARTY_MEM_DECLARE_EXCEPTION_CLASS(memory_access_error, base_error);
         MARTY_MEM_DECLARE_EXCEPTION_CLASS(access_denied           , memory_access_error);
         MARTY_MEM_DECLARE_EXCEPTION_CLASS(unassigned_memory_access, memory_access_error);

@@ -30,7 +30,7 @@ using uint64_t   = std::uint64_t;
 
 using byte_t     = uint8_t; // Наш собственный алиас
 
-using ptrdiff_t   = std::ptrdiff_t;
+using ptrdiff_t  = std::int64_t;
 
 
 template<typename IntType>
