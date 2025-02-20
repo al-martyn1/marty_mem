@@ -71,8 +71,12 @@ struct MemoryIteratorBaseImpl
     static
     void checkDiff(uint64_t diff, const char *msg)
     {
-        auto mask = bits::makeMask(unsigned(sizeof(IntType)-1u));
-        if ((diff&~mask)!=0)
+        int64_t diffMod = int64_t(diff)<0 ? -int64_t(diff) : int64_t(diff);
+        auto sizeofIntType  = sizeof(IntType);
+        auto sizeofIntType1 = sizeofIntType - 1u;
+        auto mask = bits::makeMask(int(sizeofIntType1));
+        auto diffNmask = diffMod&mask;
+        if (diffNmask!=0)
             throw invalid_address_difference(msg);
     }
 
@@ -173,26 +177,15 @@ class Memory
         return traits.endianness==Endianness::littleEndian || traits.endianness==Endianness::bigEndian;; // bigEndian;
     }
 
-    static
+    static constexpr
     uint64_t calcMemParaAlignedIndexClearBitsMask(uint64_t size)
     {
-        MARTY_MEM_ASSERT(size==1u || size==2u || size==4u || size==8u);
-        // 1 - 0
-        // 2 - 1
-        // 4 - 2
-        // 8 - 3
         return bits::makeMask(bits::getMsbPower(size));
     }
-
-// template< std::array<uint16_t, 16> v = { 0x0001u, 0x0002u, 0x0004u, 0x0008u, 0x0010u, 0x0020u, 0x0040u, 0x0080u, 0x0100u, 0x0200u, 0x0400u, 0x0800u, 0x1000u, 0x2000u, 0x4000u, 0x8000u } >
-// constexpr uint16_t getAlignedValueValidBits1(uint64_t addr)
-
 
     static constexpr
     uint16_t getAlignedValueValidBits(uint64_t addr, uint64_t size)
     {
-        MARTY_MEM_ASSERT(size==1u || size==2u || size==4u || size==8u);
-
         return (size==1) ? details::getAlignedValueValidBits1(addr)
                          : (size==2) ? details::getAlignedValueValidBits2(addr)
                                      : (size==4) ? details::getAlignedValueValidBits4(addr)
@@ -205,7 +198,7 @@ class Memory
         return addr&~0x0Full; // TODO: Проверить
     }
 
-    static
+    static constexpr
     std::size_t calcMemParaAlignedIndex(uint64_t addr, uint64_t size)
     {
         uint64_t idx = addr&0x0Full;
@@ -262,6 +255,8 @@ class Memory
     // Не кидает исключений, не производит конвертацию в/из big-endian
     MemoryAccessResultCode readAlignedImpl(uint64_t *pResVal, uint64_t addr, uint64_t size, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead) const
     {
+        MARTY_MEM_ASSERT(size==1u || size==2u || size==4u || size==8u);
+
         auto res = checkAccessRights(addr, sizeof(*pResVal), requestedMode);
         if (res!=MemoryAccessResultCode::accessGranted)
             return res;
@@ -303,8 +298,9 @@ class Memory
         uint64_t resVal = 0;
 
         auto idxBase = calcMemParaAlignedIndex(addr, size);
-        for(std::size_t i=0u; i!=size; ++i, resVal<<=8)
+        for(std::size_t i=0u; i!=size; ++i)
         {
+            resVal <<= 8;
             resVal |= it->second.bytes[idxBase+i];
         }
 
@@ -316,6 +312,8 @@ class Memory
     // Не кидает исключений, не производит конвертацию в/из big-endian
     MemoryAccessResultCode writeAlignedImpl(uint64_t val, uint64_t addr, uint64_t size, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::write)
     {
+        MARTY_MEM_ASSERT(size==1u || size==2u || size==4u || size==8u);
+
         auto res = checkAccessRights(addr, sizeof(val), requestedMode);
         if (res!=MemoryAccessResultCode::accessGranted)
             return res;
@@ -347,7 +345,7 @@ class Memory
 
         // Обновляем диапазон адресов
         m_addressValidMin = std::min(m_addressValidMin, addr);
-        m_addressValidMax = std::max(m_addressValidMin, addr+size-1u);
+        m_addressValidMax = std::max(m_addressValidMax, addr+size-1u);
 
         // Ставим биты валидности
         auto alignedValueValidBits = getAlignedValueValidBits(addr, size);
@@ -365,6 +363,8 @@ class Memory
 
 
 public:
+
+    virtual ~Memory() {}
 
     Memory() : m_memMap(), m_cachedReadIter(m_memMap.end()), m_cachedWriteIter(m_memMap.end()) {}
 
@@ -420,6 +420,7 @@ public:
         return *this;
     }
 
+    const MemoryTraits& getMemoryTraits() const { return m_memoryTraits; }
 
     virtual MemoryAccessResultCode checkAccessRights(uint64_t addr, uint64_t size, MemoryAccessRights requestedMode) const
     {
@@ -437,7 +438,7 @@ public:
         // В наследнике, в зависимости от назначения региона памяти, можно возвращать разные значения.
         // Так, при симуляции STM32 чистая флешка возвращает 0xFF, а ОЗУ - нули
         if ((memoryOptionFlags&MemoryOptionFlags::defaultFf)!=0)
-            return bits::makeByteSizeMask(std::size_t(size));
+            return bits::makeByteSizeMask(int(size));
         return 0;
     }
 
@@ -460,8 +461,9 @@ public:
                 return MemoryAccessResultCode::unalignedMemoryAccess; // Тогда облом
 
             std::size_t size = sizeof(IntType);
-            for(auto i=0u; i!=size; ++i, ++addr, val64<<=8)
+            for(auto i=0u; i!=size; ++i, ++addr)
             {
+                val64 <<= 8;
                 uint8_t byte = 0;
                 auto res = read(&byte, addr, memoryOptionFlags, requestedMode);
                 if (res!=MemoryAccessResultCode::accessGranted)
@@ -509,17 +511,17 @@ public:
         // Для начала цикл в холостую - если какая ошибка выскочит, то ничего фактически изменено не будет
 
         uint64_t orgAddr  = addr;
-        uint64_t orgVal64 = val64;
+        // uint64_t orgVal64 = val64;
         std::size_t size = sizeof(IntType);
-        for(auto i=0u; i!=size; ++i, ++addr, val64>>=8)
+        for(auto i=0u; i!=size; ++i, ++addr /* , val64>>=8 */ ) // реальное значение можно не вычислять - всё равно записи не производится
         {
-            auto res = writeAlignedImpl(val64, addr, 1, memoryOptionFlags|MemoryOptionFlags::writeSimulate, requestedMode);
+            auto res = writeAlignedImpl( 0 /* val64 */ , addr, 1, memoryOptionFlags|MemoryOptionFlags::writeSimulate, requestedMode);
             if (res!=MemoryAccessResultCode::accessGranted)
                 return res;
         }
 
         addr  = orgAddr ;
-        val64 = orgVal64;
+        // val64 = orgVal64;
         for(auto i=0u; i!=size; ++i, ++addr, val64>>=8)
         {
             // Результат можно не проверять
@@ -542,6 +544,66 @@ public:
         return write(val, addr, m_memoryTraits.memoryOptionFlags, requestedMode);
     }
 
+    MemoryAccessResultCode read(byte_vector_t &v, uint64_t addr, uint64_t nRead, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    {
+        v.reserve(std::size_t(nRead));
+
+        for(uint64_t i=0u; i!=nRead; ++i, ++addr)
+        {
+            byte_t b = 0;
+            auto rc = read(&b, addr, memoryOptionFlags, requestedMode);
+            if (rc!=MemoryAccessResultCode::accessGranted)
+                return rc;
+            v.push_back(b);
+        }
+
+        return MemoryAccessResultCode::accessGranted;
+    }
+
+    MemoryAccessResultCode read(byte_vector_t &v, uint64_t addr, uint64_t nRead, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    {
+        return read(v, addr, nRead, m_memoryTraits.memoryOptionFlags, requestedMode);
+    }
+
+    MemoryAccessResultCode write(const byte_vector_t &v, uint64_t addr, uint64_t nWrite, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    {
+        memoryOptionFlags &= MemoryOptionFlags::writeSimulate; // Чтобы случайно не просочилось
+
+        if (nWrite>v.size())
+            nWrite = v.size();
+
+        uint64_t addrOrg = addr;
+        for(uint64_t i=0u; i!=nWrite; ++i, ++addr)
+        {
+            auto rc = write(v[i], addr, memoryOptionFlags|MemoryOptionFlags::writeSimulate, requestedMode);
+            if (rc!=MemoryAccessResultCode::accessGranted)
+                return rc;
+        }
+
+        addr = addrOrg;
+        for(uint64_t i=0u; i!=nWrite; ++i, ++addr)
+        {
+            write(v[i], addr, memoryOptionFlags, requestedMode);
+        }
+
+        return MemoryAccessResultCode::accessGranted;
+    }
+
+    MemoryAccessResultCode write(const byte_vector_t &v, uint64_t addr, uint64_t nWrite, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    {
+        return write(v, addr, nWrite, m_memoryTraits.memoryOptionFlags, requestedMode);
+    }
+
+    MemoryAccessResultCode write(const byte_vector_t &v, uint64_t addr, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    {
+        return write(v, addr, v.size(), memoryOptionFlags, requestedMode);
+    }
+
+    MemoryAccessResultCode write(const byte_vector_t &v, uint64_t addr, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    {
+        return write(v, addr, v.size(), m_memoryTraits.memoryOptionFlags, requestedMode);
+    }
+
 
     uint64_t addressMin() const { return m_addressValidMin; }
     uint64_t addressMax() const { return m_addressValidMax; }
@@ -561,18 +623,18 @@ public:
         return addressBegin()+diff;
     }
 
-    template<typename IntType> MemoryIterator<IntType> begin();
-    template<typename IntType> MemoryIterator<IntType> end();
+    template<typename IntType=byte_t> MemoryIterator<IntType> begin(bool throwOnHitMiss=true);
+    template<typename IntType=byte_t> MemoryIterator<IntType> end(bool throwOnHitMiss=true);
 
-    template<typename IntType> ConstMemoryIterator<IntType> begin() const;
-    template<typename IntType> ConstMemoryIterator<IntType> end() const;
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> begin(bool throwOnHitMiss=true) const;
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> end(bool throwOnHitMiss=true) const;
 
-    template<typename IntType> ConstMemoryIterator<IntType> cbegin() const;
-    template<typename IntType> ConstMemoryIterator<IntType> cend() const;
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> cbegin(bool throwOnHitMiss=true) const;
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> cend(bool throwOnHitMiss=true) const;
 
-    template<typename IntType> MemoryIterator<IntType>      iterator(uint64_t addr);
-    template<typename IntType> ConstMemoryIterator<IntType> iterator(uint64_t addr) const;
-    template<typename IntType> ConstMemoryIterator<IntType> citerator(uint64_t addr) const;
+    template<typename IntType=byte_t> MemoryIterator<IntType>      iterator(uint64_t addr, bool throwOnHitMiss=true);
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> iterator(uint64_t addr, bool throwOnHitMiss=true) const;
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> citerator(uint64_t addr, bool throwOnHitMiss=true) const;
 
 
     // Нужен итератор, который обходит память побайтно, пословно, и тп
@@ -592,16 +654,19 @@ struct MemoryIterator : public MemoryIteratorBaseImpl<IntType>
 
     using BaseImpl = MemoryIteratorBaseImpl<IntType>;
 
-    Memory            *pMemory = 0;
+    Memory              *pMemory = 0;
+    MemoryOptionFlags    memoryOptionFlags = MemoryOptionFlags::none;
+
 
     struct AccessProxy
     {
-        Memory       *pMemory = 0;
-        uint64_t      address = 0;
+        Memory             *pMemory = 0;
+        uint64_t            address = 0;
+        MemoryOptionFlags   memoryOptionFlags = 0;
 
         AccessProxy() {}
 
-        explicit AccessProxy(Memory *pm, std::uint64_t addr) : pMemory(pm), address(addr)
+        explicit AccessProxy(Memory *pm, std::uint64_t addr, MemoryOptionFlags mof) : pMemory(pm), address(addr), memoryOptionFlags(mof)
         {
             MARTY_MEM_ASSERT(pMemory);
         }
@@ -609,25 +674,34 @@ struct MemoryIterator : public MemoryIteratorBaseImpl<IntType>
         AccessProxy& operator=(IntType b)
         {
             MARTY_MEM_ASSERT(pMemory);
-            auto rc = pMemory->write(b, address);
+            auto rc = pMemory->write(b, address, memoryOptionFlags);
             throwMemoryAccessError(rc);
             return *this;
         }
 
         operator IntType() const
         {
-            MARTY_MEM_ASSERT(pMemory);
+            
             IntType resVal = 0;
-            auto rc = pMemory->read(&resVal, address);
+            auto rc = pMemory->read(&resVal, address, memoryOptionFlags);
             throwMemoryAccessError(rc);
             return resVal;
         }
     
     }; // struct AccessProxy
 
+
     MemoryIterator() {}
 
-    explicit MemoryIterator(Memory *pm, uint64_t addr) : BaseImpl(addr), pMemory(pm) {}
+    explicit MemoryIterator(Memory *pm, uint64_t addr, bool throwOnHitMiss) : BaseImpl(addr), pMemory(pm)
+    {
+        MARTY_MEM_ASSERT(pMemory);
+
+        memoryOptionFlags = pMemory->getMemoryTraits().memoryOptionFlags;
+        memoryOptionFlags &= ~MemoryOptionFlags::errorOnHitMiss;
+        if (throwOnHitMiss)
+            memoryOptionFlags |= MemoryOptionFlags::errorOnHitMiss;
+    }
 
     // Остальные ctor/op= компилятор сам сгенерит
 
@@ -642,7 +716,7 @@ struct MemoryIterator : public MemoryIteratorBaseImpl<IntType>
 
     AccessProxy operator*()
     {
-        return AccessProxy(pMemory, BaseImpl::address);
+        return AccessProxy(pMemory, BaseImpl::address, memoryOptionFlags);
     }
 
 }; // struct MemoryIterator
@@ -684,16 +758,19 @@ struct ConstMemoryIterator : public MemoryIteratorBaseImpl<IntType>
 
     using BaseImpl = MemoryIteratorBaseImpl<IntType>;
 
-    const Memory     *pMemory = 0;
+    const Memory        *pMemory = 0;
+    MemoryOptionFlags    memoryOptionFlags = MemoryOptionFlags::none;
+
 
     struct AccessProxy
     {
-        const Memory *pMemory = 0;
-        uint64_t      address = 0;
+        const Memory       *pMemory = 0;
+        uint64_t            address = 0;
+        MemoryOptionFlags   memoryOptionFlags = 0; // bool throwOnHitMiss
 
         AccessProxy() {}
 
-        explicit AccessProxy(const Memory *pm, std::uint64_t addr) : pMemory(pm), address(addr)
+        explicit AccessProxy(const Memory *pm, std::uint64_t addr, MemoryOptionFlags mof) : pMemory(pm), address(addr), memoryOptionFlags(mof)
         {
             MARTY_MEM_ASSERT(pMemory);
         }
@@ -702,19 +779,28 @@ struct ConstMemoryIterator : public MemoryIteratorBaseImpl<IntType>
         {
             MARTY_MEM_ASSERT(pMemory);
             IntType resVal = 0;
-            auto rc = pMemory->read(&resVal, address);
+            auto rc = pMemory->read(&resVal, address, memoryOptionFlags);
             throwMemoryAccessError(rc);
             return resVal;
         }
     
     }; // struct AccessProxy
 
+
     ConstMemoryIterator() {}
 
-    explicit ConstMemoryIterator(const Memory *pm, uint64_t addr) : BaseImpl(addr), pMemory(pm) {}
-    ConstMemoryIterator(MemoryIterator<IntType> it) : BaseImpl(it.address), pMemory(it.pMemory) {}
-    
+    explicit ConstMemoryIterator(const Memory *pm, uint64_t addr, bool throwOnHitMiss) : BaseImpl(addr), pMemory(pm)
+    {
+        MARTY_MEM_ASSERT(pMemory);
+     
+        memoryOptionFlags = pMemory->getMemoryTraits().memoryOptionFlags;
+        memoryOptionFlags &= ~MemoryOptionFlags::errorOnHitMiss;
+        if (throwOnHitMiss)
+            memoryOptionFlags |= MemoryOptionFlags::errorOnHitMiss;
+    }
 
+    ConstMemoryIterator(MemoryIterator<IntType> it) : BaseImpl(it.address), pMemory(it.pMemory), memoryOptionFlags(it.memoryOptionFlags) {}
+    
     // Остальные ctor/op= компилятор сам сгенерит
 
     operator std::uint64_t() const               { return BaseImpl::address; }
@@ -728,7 +814,7 @@ struct ConstMemoryIterator : public MemoryIteratorBaseImpl<IntType>
 
     AccessProxy operator*()
     {
-        return AccessProxy(pMemory, BaseImpl::address);
+        return AccessProxy(pMemory, BaseImpl::address, memoryOptionFlags);
     }
 
 }; // struct ConstMemoryIterator
@@ -764,18 +850,18 @@ template<typename IntType> bool operator!=(ConstMemoryIterator<IntType> it1, Con
 
 
 //----------------------------------------------------------------------------
-template<typename IntType> MemoryIterator<IntType> Memory::begin()             { return MemoryIterator<IntType>(this, addressBegin()); }
-template<typename IntType> MemoryIterator<IntType> Memory::end()               { return MemoryIterator<IntType>(this, addressEndAligned<IntType>()); }
+template<typename IntType> MemoryIterator<IntType> Memory::begin(bool throwOnHitMiss)             { return MemoryIterator<IntType>(this, addressBegin(), throwOnHitMiss); }
+template<typename IntType> MemoryIterator<IntType> Memory::end(bool throwOnHitMiss)               { return MemoryIterator<IntType>(this, addressEndAligned<IntType>(), throwOnHitMiss); }
  
-template<typename IntType> ConstMemoryIterator<IntType> Memory::begin() const  { return ConstMemoryIterator<IntType>(this, addressBegin()); }
-template<typename IntType> ConstMemoryIterator<IntType> Memory::end() const    { return ConstMemoryIterator<IntType>(this, addressEndAligned<IntType>()); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::begin(bool throwOnHitMiss) const  { return ConstMemoryIterator<IntType>(this, addressBegin(), throwOnHitMiss); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::end(bool throwOnHitMiss) const    { return ConstMemoryIterator<IntType>(this, addressEndAligned<IntType>(), throwOnHitMiss); }
  
-template<typename IntType> ConstMemoryIterator<IntType> Memory::cbegin() const { return ConstMemoryIterator<IntType>(this, addressBegin()); }
-template<typename IntType> ConstMemoryIterator<IntType> Memory::cend() const   { return ConstMemoryIterator<IntType>(this, addressEndAligned<IntType>()); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::cbegin(bool throwOnHitMiss) const { return ConstMemoryIterator<IntType>(this, addressBegin(), throwOnHitMiss); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::cend(bool throwOnHitMiss) const   { return ConstMemoryIterator<IntType>(this, addressEndAligned<IntType>(), throwOnHitMiss); }
 
-template<typename IntType> MemoryIterator<IntType>      Memory::iterator(uint64_t addr)        { return MemoryIterator<IntType>(this, addr); }
-template<typename IntType> ConstMemoryIterator<IntType> Memory::iterator(uint64_t addr) const  { return ConstMemoryIterator<IntType>(this, addr); }
-template<typename IntType> ConstMemoryIterator<IntType> Memory::citerator(uint64_t addr) const { return ConstMemoryIterator<IntType>(this, addr); }
+template<typename IntType> MemoryIterator<IntType>      Memory::iterator(uint64_t addr, bool throwOnHitMiss)        { return MemoryIterator<IntType>(this, addr, throwOnHitMiss); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::iterator(uint64_t addr, bool throwOnHitMiss) const  { return ConstMemoryIterator<IntType>(this, addr, throwOnHitMiss); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::citerator(uint64_t addr, bool throwOnHitMiss) const { return ConstMemoryIterator<IntType>(this, addr, throwOnHitMiss); }
 
 
 //----------------------------------------------------------------------------

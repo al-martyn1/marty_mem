@@ -78,38 +78,38 @@ inline unsigned countOnes(int64_t  v)  { return countOnes(uint64_t(v)); }
 
 //----------------------------------------------------------------------------
 //! returns most significant bit power
-constexpr inline unsigned getMsbPower(uint8_t v)
+constexpr inline int getMsbPower(uint8_t v)
 {
     return (v>=0x80u)
-           ? 7u
+           ? 7
            : (v>=0x40u)
-             ? 6u
+             ? 6
              : (v>=0x20u)
-               ? 5u
+               ? 5
                : (v>=0x10u)
-                 ? 4u
+                 ? 4
                  : (v>=0x08u)
-                   ? 3u
+                   ? 3
                    : (v>=0x04u)
-                     ? 2u
+                     ? 2
                      : (v>=0x02u)
-                       ? 1u
-                       : 0u
+                       ? 1
+                       : 0
            ;
 }
 
-constexpr inline unsigned getMsbPower(uint16_t v) { return getMsbPower(uint8_t (v>> 8)) ? getMsbPower(uint8_t (v>> 8))+  8 : getMsbPower(uint8_t (v)); }
-constexpr inline unsigned getMsbPower(uint32_t v) { return getMsbPower(uint16_t(v>>16)) ? getMsbPower(uint16_t(v>>16))+ 16 : getMsbPower(uint16_t(v)); }
-constexpr inline unsigned getMsbPower(uint64_t v) { return getMsbPower(uint32_t(v>>32)) ? getMsbPower(uint32_t(v>>32))+ 32 : getMsbPower(uint32_t(v)); }
+constexpr inline int getMsbPower(uint16_t v) { return getMsbPower(uint8_t (v>> 8)) ? getMsbPower(uint8_t (v>> 8))+  8 : getMsbPower(uint8_t (v)); }
+constexpr inline int getMsbPower(uint32_t v) { return getMsbPower(uint16_t(v>>16)) ? getMsbPower(uint16_t(v>>16))+ 16 : getMsbPower(uint16_t(v)); }
+constexpr inline int getMsbPower(uint64_t v) { return getMsbPower(uint32_t(v>>32)) ? getMsbPower(uint32_t(v>>32))+ 32 : getMsbPower(uint32_t(v)); }
 
-constexpr inline unsigned getMsbPower(int8_t  v)  { return getMsbPower(uint8_t (v)); }
-constexpr inline unsigned getMsbPower(int16_t v)  { return getMsbPower(uint16_t(v)); }
-constexpr inline unsigned getMsbPower(int32_t v)  { return getMsbPower(uint32_t(v)); }
-constexpr inline unsigned getMsbPower(int64_t v)  { return getMsbPower(uint64_t(v)); }
+constexpr inline int getMsbPower(int8_t  v)  { return getMsbPower(uint8_t (v)); }
+constexpr inline int getMsbPower(int16_t v)  { return getMsbPower(uint16_t(v)); }
+constexpr inline int getMsbPower(int32_t v)  { return getMsbPower(uint32_t(v)); }
+constexpr inline int getMsbPower(int64_t v)  { return getMsbPower(uint64_t(v)); }
 
 //----------------------------------------------------------------------------
 inline
-uint64_t makeByteSizeMask(std::size_t n)
+uint64_t makeByteSizeMask(int n)
 {
     switch(n)
     {
@@ -125,7 +125,7 @@ uint64_t makeByteSizeMask(std::size_t n)
 }
 
 //----------------------------------------------------------------------------
-template<unsigned NumBits> constexpr uint64_t makeMask() { return 0; }
+template<int NumBits> constexpr uint64_t makeMask() { return 0; }
 
 template<> constexpr uint64_t makeMask< 0>() { return 0x0000000000000000ull; }
 
@@ -216,7 +216,7 @@ template<> constexpr uint64_t makeMask<64>() { return 0xFFFFFFFFFFFFFFFFull; }
 
 //----------------------------------------------------------------------------
 inline
-constexpr uint64_t makeMask(unsigned nBits)
+constexpr uint64_t makeMask(int nBits)
 {
     return (nBits==0)
            ? makeMask<0>()
