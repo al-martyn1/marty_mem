@@ -47,10 +47,10 @@ struct VirtualAddress
     virtual ~VirtualAddress() {}
     virtual SharedVirtualAddress clone() = 0;
     virtual void setIncrement(uint64_t) = 0;
-    virtual void inc() = 0;
-    virtual void dec() = 0;
-    virtual void add(ptrdiff_t d) = 0;
-    virtual void subtract(ptrdiff_t d) = 0;
+    virtual bool inc() = 0;                      // Возвращает true, если было переполнение адреса/смещения в сегменте
+    virtual bool dec() = 0;                      // Возвращает true, если было переполнение адреса/смещения в сегменте
+    virtual bool add(ptrdiff_t d) = 0;           // Возвращает true, если было переполнение адреса/смещения в сегменте
+    virtual bool subtract(ptrdiff_t d) = 0;      // Возвращает true, если было переполнение адреса/смещения в сегменте
     virtual uint64_t getLinearAddress() = 0;
     virtual std::string toString() = 0;
     virtual ptrdiff_t distanceTo(const VirtualAddress *pv) = 0;  // "Расстояние" от текущего до pv - сколько надо прибавить к текущему, чтобы получить pv => *pv > *this => dist = pv - dist

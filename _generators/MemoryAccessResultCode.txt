@@ -4,3 +4,4 @@ accessGranted             = 0   // Access Granted
 accessDenied                    // Access denied by access rights, no data written/returned
 unassignedMemoryAccess          // Value returned, but some bytes not assigned, unassigned mask also returned
 unalignedMemoryAccess           // Unaligned address taken for aligned access, no data written/returned
+addressWrap                     // Address wrap detected

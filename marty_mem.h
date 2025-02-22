@@ -55,17 +55,45 @@ struct MemoryIteratorBaseImpl
         return address;
     }
 
-    void inc() { address += sizeof(IntType); }
-    void dec() { address -= sizeof(IntType); }
+        // m_offset += m_incSize;
+        // auto offsSaved = m_offset;
+        // m_offset &= m_offsetMask;
+        // return offsSaved!=m_offset;
 
-    MemoryIteratorBaseImpl& operator+=(ptrdiff_t d)
+    bool perfromAddImpl(ptrdiff_t d)
     {
+        auto addrSaved = address;
         address += std::uint64_t(d*sizeof(IntType));
+        return d<0 // На самом деле происходит вычитание?
+             ? address>addrSaved // для вычитания делаем как в dec - новый адрес больше старого - переполнение
+             : address < addrSaved // для сложения делаем как в inc - новый адрес меньше старого - переполнение
+             ;
     }
 
-    MemoryIteratorBaseImpl& operator-=(ptrdiff_t d)
+    void perfromAdd(ptrdiff_t d, bool throwOnWrap)
     {
-        address -= std::uint64_t(d*sizeof(IntType));
+        if (perfromAddImpl(d) && throwOnWrap)
+            throw address_wrap("marty::mem::Memory: address wrap happened");
+    }
+
+    void inc(bool throwOnWrap)
+    {
+        perfromAdd(1, throwOnWrap);
+    }
+
+    void dec(bool throwOnWrap)
+    {
+        perfromAdd(-1, throwOnWrap);
+    }
+
+    void add(ptrdiff_t d, bool throwOnWrap)
+    {
+        perfromAdd(d, throwOnWrap);
+    }
+
+    void subtract(ptrdiff_t d, bool throwOnWrap)
+    {
+        perfromAdd(-d, throwOnWrap);
     }
 
     static
@@ -298,10 +326,14 @@ class Memory
         uint64_t resVal = 0;
 
         auto idxBase = calcMemParaAlignedIndex(addr, size);
+        uint64_t testAddr = (addr&0x0Full)+idxBase;
         for(std::size_t i=0u; i!=size; ++i)
         {
             resVal <<= 8;
             resVal |= it->second.bytes[idxBase+i];
+            uint64_t prevTestAddr = testAddr++;
+            if (prevTestAddr>testAddr && (memoryOptionFlags&MemoryOptionFlags::errorOnAddressWrap)!=0)
+                return MemoryAccessResultCode::addressWrap;
         }
 
         *pResVal = resVal;
@@ -352,9 +384,13 @@ class Memory
         it->second.validBits |= alignedValueValidBits;
 
         auto idxBase = calcMemParaAlignedIndex(addr, size);
+        uint64_t testAddr = (addr&0x0Full)+idxBase;
         for(std::size_t i=0u; i!=size; ++i, val>>=8)
         {
             it->second.bytes[idxBase+i] = uint8_t(val);
+            uint64_t prevTestAddr = testAddr++;
+            if (prevTestAddr>testAddr && (memoryOptionFlags&MemoryOptionFlags::errorOnAddressWrap)!=0)
+                return MemoryAccessResultCode::addressWrap;
         }
 
         return MemoryAccessResultCode::accessGranted;
@@ -461,7 +497,7 @@ public:
                 return MemoryAccessResultCode::unalignedMemoryAccess; // Тогда облом
 
             std::size_t size = sizeof(IntType);
-            for(auto i=0u; i!=size; ++i, ++addr)
+            for(auto i=0u; i!=size; ++i)
             {
                 val64 <<= 8;
                 uint8_t byte = 0;
@@ -469,8 +505,10 @@ public:
                 if (res!=MemoryAccessResultCode::accessGranted)
                     return res;
                 val64 |= byte;
+                uint64_t prevAddr = addr++;
+                if (prevAddr>addr && (memoryOptionFlags&MemoryOptionFlags::errorOnAddressWrap)!=0)
+                    return MemoryAccessResultCode::addressWrap;
             }
-
         }
 
         if (pResVal)
@@ -513,11 +551,14 @@ public:
         uint64_t orgAddr  = addr;
         // uint64_t orgVal64 = val64;
         std::size_t size = sizeof(IntType);
-        for(auto i=0u; i!=size; ++i, ++addr /* , val64>>=8 */ ) // реальное значение можно не вычислять - всё равно записи не производится
+        for(auto i=0u; i!=size; ++i /* , val64>>=8 */ ) // реальное значение можно не вычислять - всё равно записи не производится
         {
             auto res = writeAlignedImpl( 0 /* val64 */ , addr, 1, memoryOptionFlags|MemoryOptionFlags::writeSimulate, requestedMode);
             if (res!=MemoryAccessResultCode::accessGranted)
                 return res;
+            uint64_t prevAddr = addr++;
+            if (prevAddr>addr && (memoryOptionFlags&MemoryOptionFlags::errorOnAddressWrap)!=0)
+                return MemoryAccessResultCode::addressWrap;
         }
 
         addr  = orgAddr ;
@@ -623,22 +664,18 @@ public:
         return addressBegin()+diff;
     }
 
-    template<typename IntType=byte_t> MemoryIterator<IntType> begin(bool throwOnHitMiss=true);
-    template<typename IntType=byte_t> MemoryIterator<IntType> end(bool throwOnHitMiss=true);
+    template<typename IntType=byte_t> MemoryIterator<IntType> begin(MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss);
+    template<typename IntType=byte_t> MemoryIterator<IntType> end(MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss);
 
-    template<typename IntType=byte_t> ConstMemoryIterator<IntType> begin(bool throwOnHitMiss=true) const;
-    template<typename IntType=byte_t> ConstMemoryIterator<IntType> end(bool throwOnHitMiss=true) const;
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> begin(MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss) const;
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> end(MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss) const;
 
-    template<typename IntType=byte_t> ConstMemoryIterator<IntType> cbegin(bool throwOnHitMiss=true) const;
-    template<typename IntType=byte_t> ConstMemoryIterator<IntType> cend(bool throwOnHitMiss=true) const;
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> cbegin(MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss) const;
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> cend(MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss) const;
 
-    template<typename IntType=byte_t> MemoryIterator<IntType>      iterator(uint64_t addr, bool throwOnHitMiss=true);
-    template<typename IntType=byte_t> ConstMemoryIterator<IntType> iterator(uint64_t addr, bool throwOnHitMiss=true) const;
-    template<typename IntType=byte_t> ConstMemoryIterator<IntType> citerator(uint64_t addr, bool throwOnHitMiss=true) const;
-
-
-    // Нужен итератор, который обходит память побайтно, пословно, и тп
-
+    template<typename IntType=byte_t> MemoryIterator<IntType>      iterator(uint64_t addr, MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss);
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> iterator(uint64_t addr, MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss) const;
+    template<typename IntType=byte_t> ConstMemoryIterator<IntType> citerator(uint64_t addr, MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss) const;
 
 
 }; // class Memory
@@ -693,26 +730,31 @@ struct MemoryIterator : public MemoryIteratorBaseImpl<IntType>
 
     MemoryIterator() {}
 
-    explicit MemoryIterator(Memory *pm, uint64_t addr, bool throwOnHitMiss) : BaseImpl(addr), pMemory(pm)
+    explicit MemoryIterator(Memory *pm, uint64_t addr, MemoryOptionFlags mof) : BaseImpl(addr), pMemory(pm)
     {
         MARTY_MEM_ASSERT(pMemory);
 
-        memoryOptionFlags = pMemory->getMemoryTraits().memoryOptionFlags;
-        memoryOptionFlags &= ~MemoryOptionFlags::errorOnHitMiss;
-        if (throwOnHitMiss)
-            memoryOptionFlags |= MemoryOptionFlags::errorOnHitMiss;
+        mof &= MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss; // Пропускаем извне только эти флаги
+        memoryOptionFlags  = pMemory->getMemoryTraits().memoryOptionFlags;
+        memoryOptionFlags &= ~(MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss); // В опциях memory сбрасываем эти флаги, не используем дефолтные установки
+        memoryOptionFlags |= mof;
     }
 
     // Остальные ctor/op= компилятор сам сгенерит
 
+    bool getThrowOnWrapOption() const
+    {
+        return (memoryOptionFlags & MemoryOptionFlags::errorOnAddressWrap)!=0;
+    }
+
     operator std::uint64_t() const               { return BaseImpl::address; }
 
-    MemoryIterator& operator++() /* pre */       { BaseImpl::inc(); return *this; }
-    MemoryIterator  operator++(int)  /* post */  { auto cp = *this; BaseImpl::inc(); return cp; }
-    MemoryIterator& operator--()  /* pre */      { BaseImpl::dec(); return *this; }
-    MemoryIterator  operator--(int)  /* post */  { auto cp = *this; BaseImpl::dec(); return cp; }
-    MemoryIterator& operator+=(ptrdiff_t d)      { return BaseImpl::operator+=(d); }
-    MemoryIterator& operator-=(ptrdiff_t d)      { BaseImpl::address -= std::uint64_t(d*sizeof(IntType)); }
+    MemoryIterator& operator++()     /* pre */   { BaseImpl::inc(getThrowOnWrapOption()); return *this; }
+    MemoryIterator& operator--()     /* pre */   { BaseImpl::dec(getThrowOnWrapOption()); return *this; }
+    MemoryIterator  operator++(int)  /* post */  { auto cp = *this; BaseImpl::inc(getThrowOnWrapOption()); return cp; }
+    MemoryIterator  operator--(int)  /* post */  { auto cp = *this; BaseImpl::dec(getThrowOnWrapOption()); return cp; }
+    MemoryIterator& operator+=(ptrdiff_t d)      { BaseImpl::add     (d, getThrowOnWrapOption()); return *this; }
+    MemoryIterator& operator-=(ptrdiff_t d)      { BaseImpl::subtract(d, getThrowOnWrapOption()); return *this; }
 
     AccessProxy operator*()
     {
@@ -789,28 +831,33 @@ struct ConstMemoryIterator : public MemoryIteratorBaseImpl<IntType>
 
     ConstMemoryIterator() {}
 
-    explicit ConstMemoryIterator(const Memory *pm, uint64_t addr, bool throwOnHitMiss) : BaseImpl(addr), pMemory(pm)
+    explicit ConstMemoryIterator(const Memory *pm, uint64_t addr, MemoryOptionFlags mof) : BaseImpl(addr), pMemory(pm)
     {
         MARTY_MEM_ASSERT(pMemory);
      
-        memoryOptionFlags = pMemory->getMemoryTraits().memoryOptionFlags;
-        memoryOptionFlags &= ~MemoryOptionFlags::errorOnHitMiss;
-        if (throwOnHitMiss)
-            memoryOptionFlags |= MemoryOptionFlags::errorOnHitMiss;
+        mof &= MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss; // Пропускаем извне только эти флаги
+        memoryOptionFlags  = pMemory->getMemoryTraits().memoryOptionFlags;
+        memoryOptionFlags &= ~(MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss); // В опциях memory сбрасываем эти флаги, не используем дефолтные установки
+        memoryOptionFlags |= mof;
     }
 
     ConstMemoryIterator(MemoryIterator<IntType> it) : BaseImpl(it.address), pMemory(it.pMemory), memoryOptionFlags(it.memoryOptionFlags) {}
     
     // Остальные ctor/op= компилятор сам сгенерит
 
+    bool getThrowOnWrapOption() const
+    {
+        return (memoryOptionFlags & MemoryOptionFlags::errorOnAddressWrap)!=0;
+    }
+
     operator std::uint64_t() const               { return BaseImpl::address; }
 
-    ConstMemoryIterator& operator++() /* pre */       { BaseImpl::inc(); return *this; }
-    ConstMemoryIterator  operator++(int)  /* post */  { auto cp = *this; BaseImpl::inc(); return cp; }
-    ConstMemoryIterator& operator--()  /* pre */      { BaseImpl::dec(); return *this; }
-    ConstMemoryIterator  operator--(int)  /* post */  { auto cp = *this; BaseImpl::dec(); return cp; }
-    ConstMemoryIterator& operator+=(ptrdiff_t d)      { return BaseImpl::operator+=(d); }
-    ConstMemoryIterator& operator-=(ptrdiff_t d)      { BaseImpl::address -= std::uint64_t(d*sizeof(IntType)); }
+    ConstMemoryIterator& operator++()     /* pre */   { BaseImpl::inc(getThrowOnWrapOption()); return *this; }
+    ConstMemoryIterator& operator--()     /* pre */   { BaseImpl::dec(getThrowOnWrapOption()); return *this; }
+    ConstMemoryIterator  operator++(int)  /* post */  { auto cp = *this; BaseImpl::inc(getThrowOnWrapOption()); return cp; }
+    ConstMemoryIterator  operator--(int)  /* post */  { auto cp = *this; BaseImpl::dec(getThrowOnWrapOption()); return cp; }
+    ConstMemoryIterator& operator+=(ptrdiff_t d)      { BaseImpl::add     (d, getThrowOnWrapOption()); return *this; }
+    ConstMemoryIterator& operator-=(ptrdiff_t d)      { BaseImpl::subtract(d, getThrowOnWrapOption()); return *this; }
 
     AccessProxy operator*()
     {
@@ -850,19 +897,21 @@ template<typename IntType> bool operator!=(ConstMemoryIterator<IntType> it1, Con
 
 
 //----------------------------------------------------------------------------
-template<typename IntType> MemoryIterator<IntType> Memory::begin(bool throwOnHitMiss)             { return MemoryIterator<IntType>(this, addressBegin(), throwOnHitMiss); }
-template<typename IntType> MemoryIterator<IntType> Memory::end(bool throwOnHitMiss)               { return MemoryIterator<IntType>(this, addressEndAligned<IntType>(), throwOnHitMiss); }
+template<typename IntType> MemoryIterator<IntType>      Memory::begin(MemoryOptionFlags memoryOptionFlags)        { return MemoryIterator<IntType>(this, addressBegin(), memoryOptionFlags); }
+template<typename IntType> MemoryIterator<IntType>      Memory::end(MemoryOptionFlags memoryOptionFlags)          { return MemoryIterator<IntType>(this, addressEndAligned<IntType>(), memoryOptionFlags); }
  
-template<typename IntType> ConstMemoryIterator<IntType> Memory::begin(bool throwOnHitMiss) const  { return ConstMemoryIterator<IntType>(this, addressBegin(), throwOnHitMiss); }
-template<typename IntType> ConstMemoryIterator<IntType> Memory::end(bool throwOnHitMiss) const    { return ConstMemoryIterator<IntType>(this, addressEndAligned<IntType>(), throwOnHitMiss); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::begin(MemoryOptionFlags memoryOptionFlags)  const { return ConstMemoryIterator<IntType>(this, addressBegin(), memoryOptionFlags); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::end(MemoryOptionFlags memoryOptionFlags)    const { return ConstMemoryIterator<IntType>(this, addressEndAligned<IntType>(), memoryOptionFlags); }
  
-template<typename IntType> ConstMemoryIterator<IntType> Memory::cbegin(bool throwOnHitMiss) const { return ConstMemoryIterator<IntType>(this, addressBegin(), throwOnHitMiss); }
-template<typename IntType> ConstMemoryIterator<IntType> Memory::cend(bool throwOnHitMiss) const   { return ConstMemoryIterator<IntType>(this, addressEndAligned<IntType>(), throwOnHitMiss); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::cbegin(MemoryOptionFlags memoryOptionFlags) const { return ConstMemoryIterator<IntType>(this, addressBegin(), memoryOptionFlags); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::cend(MemoryOptionFlags memoryOptionFlags)   const { return ConstMemoryIterator<IntType>(this, addressEndAligned<IntType>(), memoryOptionFlags); }
 
-template<typename IntType> MemoryIterator<IntType>      Memory::iterator(uint64_t addr, bool throwOnHitMiss)        { return MemoryIterator<IntType>(this, addr, throwOnHitMiss); }
-template<typename IntType> ConstMemoryIterator<IntType> Memory::iterator(uint64_t addr, bool throwOnHitMiss) const  { return ConstMemoryIterator<IntType>(this, addr, throwOnHitMiss); }
-template<typename IntType> ConstMemoryIterator<IntType> Memory::citerator(uint64_t addr, bool throwOnHitMiss) const { return ConstMemoryIterator<IntType>(this, addr, throwOnHitMiss); }
+template<typename IntType> MemoryIterator<IntType>      Memory::iterator(uint64_t addr, MemoryOptionFlags memoryOptionFlags)        { return MemoryIterator<IntType>(this, addr, memoryOptionFlags); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::iterator(uint64_t addr, MemoryOptionFlags memoryOptionFlags)  const { return ConstMemoryIterator<IntType>(this, addr, memoryOptionFlags); }
+template<typename IntType> ConstMemoryIterator<IntType> Memory::citerator(uint64_t addr, MemoryOptionFlags memoryOptionFlags) const { return ConstMemoryIterator<IntType>(this, addr, memoryOptionFlags); }
 
+
+// MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss
 
 //----------------------------------------------------------------------------
 

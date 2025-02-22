@@ -63,7 +63,7 @@ class SegmentedAddress : public VirtualAddress
     SegmentedAddressTraits   m_traits          ;
     uint64_t                 m_segmentMask  = 0;
     uint64_t                 m_offsetMask   = 0;
-    unsigned                 m_segmentShift = 4;
+    int                      m_segmentShift = 4;
 
     
 
@@ -86,28 +86,40 @@ public:
         MARTY_MEM_ASSERT(checkIncrement(m_incSize));
     }
 
-    virtual void inc() override
+        // auto offsSaved = m_offset;
+        // m_address &= m_addressMask;
+        // return addrSaved!=m_address;
+
+    virtual bool inc() override
     {
         m_offset += m_incSize;
+        auto offsSaved = m_offset;
         m_offset &= m_offsetMask;
+        return offsSaved!=m_offset;
     }
 
-    virtual void dec() override
+    virtual bool dec() override
     {
         m_offset -= m_incSize;
+        auto offsSaved = m_offset;
         m_offset &= m_offsetMask;
+        return offsSaved!=m_offset;
     }
 
-    virtual void add(ptrdiff_t d) override
+    virtual bool add(ptrdiff_t d) override
     {
         m_offset += uint64_t(d*m_incSize);
+        auto offsSaved = m_offset;
         m_offset &= m_offsetMask;
+        return offsSaved!=m_offset;
     }
 
-    virtual void subtract(ptrdiff_t d) override
+    virtual bool subtract(ptrdiff_t d) override
     {
         m_offset -= uint64_t(d*m_incSize);
+        auto offsSaved = m_offset;
         m_offset &= m_offsetMask;
+        return offsSaved!=m_offset;
     }
 
     virtual uint64_t getLinearAddress() override
@@ -160,7 +172,7 @@ public:
         auto diff = other.m_offset - m_offset;
         diff &= m_offsetMask;
         checkDiff(diff, "the difference in addresses is not a multiple of the type size");
-        return ptrdiff_t(diff) / m_incSize;
+        return ptrdiff_t(diff) / ptrdiff_t(m_incSize);
     }
 
     virtual bool equalTo(const VirtualAddress *pv) override
@@ -196,8 +208,8 @@ public:
     , m_offset (offs)
     , m_incSize(inc)
     , m_traits (traits)
-    , m_segmentMask (bits::makeMask(traits.segmentBitSize))
-    , m_offsetMask  (bits::makeMask(traits.offsetBitSize))
+    , m_segmentMask (bits::makeMask(int(traits.segmentBitSize)))
+    , m_offsetMask  (bits::makeMask(int(traits.offsetBitSize)))
     , m_segmentShift(bits::getMsbPower(traits.paragraphSize))
     {
         MARTY_MEM_ASSERT(checkTraits(m_traits));

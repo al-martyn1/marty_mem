@@ -69,6 +69,7 @@ MARTY_MEM_DECLARE_EXCEPTION_CLASS(base_error, std::runtime_error);
         MARTY_MEM_DECLARE_EXCEPTION_CLASS(access_denied           , memory_access_error);
         MARTY_MEM_DECLARE_EXCEPTION_CLASS(unassigned_memory_access, memory_access_error);
         MARTY_MEM_DECLARE_EXCEPTION_CLASS(unaligned_memory_access , memory_access_error);
+        MARTY_MEM_DECLARE_EXCEPTION_CLASS(address_wrap            , memory_access_error);
 
 
 // Кидает исключение, соответствующее коду ошибки. Если ошибки нет - не кидает
@@ -81,7 +82,8 @@ void throwMemoryAccessError(MemoryAccessResultCode rc, const std::string &msg=st
         case MemoryAccessResultCode::accessGranted         : break;
         case MemoryAccessResultCode::accessDenied          : throw access_denied(!msg.empty() ? msg : std::string("access denied"));
         case MemoryAccessResultCode::unassignedMemoryAccess: throw unassigned_memory_access(!msg.empty() ? msg : std::string("unassigned memory access"));
-        case MemoryAccessResultCode::unalignedMemoryAccess : throw unaligned_memory_access (!msg.empty() ? msg : std::string("unaligned memory access"));
+        case MemoryAccessResultCode::unalignedMemoryAccess : throw unassigned_memory_access(!msg.empty() ? msg : std::string("unaligned memory access"));
+        case MemoryAccessResultCode::addressWrap           : throw address_wrap(!msg.empty() ? msg : std::string("address/offset wrap"));
     }
 }
 

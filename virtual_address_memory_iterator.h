@@ -14,6 +14,7 @@
 //----------------------------------------------------------------------------
 #include "assert.h"
 #include "bits.h"
+#include "exceptions.h"
 #include "fixed_size_types.h"
 #include "virtual_address.h"
 #include "linear_address.h"
@@ -82,14 +83,15 @@ struct VirtualAddressMemoryIterator
 
     VirtualAddressMemoryIterator() {}
 
-    explicit VirtualAddressMemoryIterator(Memory *pm, SharedVirtualAddress va, bool throwOnHitMiss) : pMemory(pm), virtualAddress(va)
+    explicit VirtualAddressMemoryIterator(Memory *pm, SharedVirtualAddress va, MemoryOptionFlags mof=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss) : pMemory(pm), virtualAddress(va)
     {
         MARTY_MEM_ASSERT(pMemory);
 
-        memoryOptionFlags = pMemory->getMemoryTraits().memoryOptionFlags;
-        memoryOptionFlags &= ~MemoryOptionFlags::errorOnHitMiss;
-        if (throwOnHitMiss)
-            memoryOptionFlags |= MemoryOptionFlags::errorOnHitMiss;
+        mof &= MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss; // Пропускаем извне только эти флаги
+        memoryOptionFlags  = pMemory->getMemoryTraits().memoryOptionFlags;
+        memoryOptionFlags &= ~(MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss); // В опциях memory сбрасываем эти флаги, не используем дефолтные установки
+        memoryOptionFlags |= mof;
+
         virtualAddress->setIncrement(sizeof(IntType));
     }
 
@@ -107,18 +109,26 @@ struct VirtualAddressMemoryIterator
         virtualAddress->setIncrement(sizeof(IntType));
     }
 
-
     // Остальные ctor/op= компилятор сам сгенерит
 
-    operator std::uint64_t() const             { return virtualAddress->getLinearAddress(); }
-    operator std::string() const               { return virtualAddress->toString(); }
+    operator std::uint64_t() const    { return virtualAddress->getLinearAddress(); }
+    operator std::string  () const    { return virtualAddress->toString(); }
 
-    VirtualAddressMemoryIterator& operator++() /* pre */       { virtualAddress->inc(); return *this; }
-    VirtualAddressMemoryIterator  operator++(int)  /* post */  { auto cp = deepCopy(); virtualAddress->inc(); return cp; }
-    VirtualAddressMemoryIterator& operator--()  /* pre */      { virtualAddress->dec(); return *this; }
-    VirtualAddressMemoryIterator  operator--(int)  /* post */  { auto cp = deepCopy(); virtualAddress->dec(); return cp; }
-    VirtualAddressMemoryIterator& operator+=(ptrdiff_t d)      { virtualAddress->add(d); return *this; }
-    VirtualAddressMemoryIterator& operator-=(ptrdiff_t d)      { virtualAddress->subtract(d); return *this; }
+
+    bool getThrowOnWrapOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnAddressWrap)!=0; }
+    void throwAddressWrap    () const { throwMemoryAccessError(MemoryAccessResultCode::addressWrap); }
+
+    void inc     ()             { if (virtualAddress->inc     ( ) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void dec     ()             { if (virtualAddress->dec     ( ) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void add     (ptrdiff_t d)  { if (virtualAddress->add     (d) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void subtract(ptrdiff_t d)  { if (virtualAddress->subtract(d) && getThrowOnWrapOption()) throwAddressWrap(); }
+
+    VirtualAddressMemoryIterator& operator++()    /* pre  */  { inc(); return *this; }
+    VirtualAddressMemoryIterator  operator++(int) /* post */  { auto cp = deepCopy(); inc(); return cp; }
+    VirtualAddressMemoryIterator& operator--()    /* pre  */  { dec(); return *this; }
+    VirtualAddressMemoryIterator  operator--(int) /* post */  { auto cp = deepCopy(); dec(); return cp; }
+    VirtualAddressMemoryIterator& operator+=(ptrdiff_t d)     { add(d); return *this; }
+    VirtualAddressMemoryIterator& operator-=(ptrdiff_t d)     { subtract(d); return *this; }
 
     AccessProxy operator*()
     {
@@ -187,14 +197,15 @@ struct ConstVirtualAddressMemoryIterator
 
     ConstVirtualAddressMemoryIterator() {}
 
-    explicit ConstVirtualAddressMemoryIterator(const Memory *pm, SharedVirtualAddress va, bool throwOnHitMiss) : pMemory(pm), virtualAddress(va)
+    explicit ConstVirtualAddressMemoryIterator(const Memory *pm, SharedVirtualAddress va, MemoryOptionFlags mof=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss) : pMemory(pm), virtualAddress(va)
     {
         MARTY_MEM_ASSERT(pMemory);
 
-        memoryOptionFlags = pMemory->getMemoryTraits().memoryOptionFlags;
-        memoryOptionFlags &= ~MemoryOptionFlags::errorOnHitMiss;
-        if (throwOnHitMiss)
-            memoryOptionFlags |= MemoryOptionFlags::errorOnHitMiss;
+        mof &= MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss; // Пропускаем извне только эти флаги
+        memoryOptionFlags  = pMemory->getMemoryTraits().memoryOptionFlags;
+        memoryOptionFlags &= ~(MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss); // В опциях memory сбрасываем эти флаги, не используем дефолтные установки
+        memoryOptionFlags |= mof;
+
         virtualAddress->setIncrement(sizeof(IntType));
     }
 
@@ -223,18 +234,25 @@ struct ConstVirtualAddressMemoryIterator
     {
     }
 
-
     // Остальные ctor/op= компилятор сам сгенерит
 
-    operator std::uint64_t() const             { return virtualAddress->getLinearAddress(); }
-    operator std::string() const               { return virtualAddress->toString(); }
+    operator std::uint64_t() const    { return virtualAddress->getLinearAddress(); }
+    operator std::string  () const    { return virtualAddress->toString(); }
 
-    ConstVirtualAddressMemoryIterator& operator++() /* pre */       { virtualAddress->inc(); return *this; }
-    ConstVirtualAddressMemoryIterator  operator++(int)  /* post */  { auto cp = deepCopy(); virtualAddress->inc(); return cp; }
-    ConstVirtualAddressMemoryIterator& operator--()  /* pre */      { virtualAddress->dec(); return *this; }
-    ConstVirtualAddressMemoryIterator  operator--(int)  /* post */  { auto cp = deepCopy(); virtualAddress->dec(); return cp; }
-    ConstVirtualAddressMemoryIterator& operator+=(ptrdiff_t d)      { virtualAddress->add(d); return *this; }
-    ConstVirtualAddressMemoryIterator& operator-=(ptrdiff_t d)      { virtualAddress->subtract(d); return *this; }
+    bool getThrowOnWrapOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnAddressWrap)!=0; }
+    void throwAddressWrap    () const { throwMemoryAccessError(MemoryAccessResultCode::addressWrap); }
+
+    void inc     ()             { if (virtualAddress->inc     ( ) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void dec     ()             { if (virtualAddress->dec     ( ) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void add     (ptrdiff_t d)  { if (virtualAddress->add     (d) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void subtract(ptrdiff_t d)  { if (virtualAddress->subtract(d) && getThrowOnWrapOption()) throwAddressWrap(); }
+
+    ConstVirtualAddressMemoryIterator& operator++()    /* pre  */  { inc(); return *this; }
+    ConstVirtualAddressMemoryIterator  operator++(int) /* post */  { auto cp = deepCopy(); inc(); return cp; }
+    ConstVirtualAddressMemoryIterator& operator--()    /* pre  */  { dec(); return *this; }
+    ConstVirtualAddressMemoryIterator  operator--(int) /* post */  { auto cp = deepCopy(); dec(); return cp; }
+    ConstVirtualAddressMemoryIterator& operator+=(ptrdiff_t d)     { add(d); return *this; }
+    ConstVirtualAddressMemoryIterator& operator-=(ptrdiff_t d)     { subtract(d); return *this; }
 
     AccessProxy operator*()
     {
@@ -270,31 +288,31 @@ template<typename IntType> bool operator!=(ConstVirtualAddressMemoryIterator<Int
 // ConstVirtualAddressMemoryIterator
 
 template<typename IntType>
-VirtualAddressMemoryIterator<IntType> makeLinearVirtualAddressMemoryIterator(Memory *pMemory, uint64_t addr, bool throwOnHitMiss=true, const LinearAddressTraits &traits=LinearAddressTraits{})
+VirtualAddressMemoryIterator<IntType> makeLinearVirtualAddressMemoryIterator(Memory *pMemory, uint64_t addr, MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss, const LinearAddressTraits &traits=LinearAddressTraits{})
 {
     auto la = LinearAddress(addr, uint64_t(sizeof(IntType)), traits);
-    return VirtualAddressMemoryIterator<IntType>(pMemory, la.clone(), throwOnHitMiss);
+    return VirtualAddressMemoryIterator<IntType>(pMemory, la.clone(), memoryOptionFlags);
 }
 
 template<typename IntType>
-ConstVirtualAddressMemoryIterator<IntType> makeLinearConstVirtualAddressMemoryIterator(const Memory *pMemory, uint64_t addr, bool throwOnHitMiss=true, const LinearAddressTraits &traits=LinearAddressTraits{})
+ConstVirtualAddressMemoryIterator<IntType> makeLinearConstVirtualAddressMemoryIterator(const Memory *pMemory, uint64_t addr, MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss, const LinearAddressTraits &traits=LinearAddressTraits{})
 {
     auto la = LinearAddress(addr, uint64_t(sizeof(IntType)), traits);
-    return ConstVirtualAddressMemoryIterator<IntType>(pMemory, la.clone(), throwOnHitMiss);
+    return ConstVirtualAddressMemoryIterator<IntType>(pMemory, la.clone(), memoryOptionFlags);
 }
 
 template<typename IntType>
-VirtualAddressMemoryIterator<IntType> makeSegmentedVirtualAddressMemoryIterator(Memory *pMemory, uint64_t seg, uint64_t offs, bool throwOnHitMiss=true, const SegmentedAddressTraits &traits=SegmentedAddressTraits{})
+VirtualAddressMemoryIterator<IntType> makeSegmentedVirtualAddressMemoryIterator(Memory *pMemory, uint64_t seg, uint64_t offs, MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss, const SegmentedAddressTraits &traits=SegmentedAddressTraits{})
 {
     auto sa = SegmentedAddress(seg, offs, uint64_t(sizeof(IntType)), traits);
-    return VirtualAddressMemoryIterator<IntType>(pMemory, sa.clone(), throwOnHitMiss);
+    return VirtualAddressMemoryIterator<IntType>(pMemory, sa.clone(), memoryOptionFlags);
 }
 
 template<typename IntType>
-ConstVirtualAddressMemoryIterator<IntType> makeSegmentedConstVirtualAddressMemoryIterator(const Memory *pMemory, uint64_t seg, uint64_t offs, bool throwOnHitMiss=true, const SegmentedAddressTraits &traits=SegmentedAddressTraits{})
+ConstVirtualAddressMemoryIterator<IntType> makeSegmentedConstVirtualAddressMemoryIterator(const Memory *pMemory, uint64_t seg, uint64_t offs, MemoryOptionFlags memoryOptionFlags=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss, const SegmentedAddressTraits &traits=SegmentedAddressTraits{})
 {
     auto sa = SegmentedAddress(seg, offs, uint64_t(sizeof(IntType)), traits);
-    return ConstVirtualAddressMemoryIterator<IntType>(pMemory, sa.clone(), throwOnHitMiss);
+    return ConstVirtualAddressMemoryIterator<IntType>(pMemory, sa.clone(), memoryOptionFlags);
 }
 
 

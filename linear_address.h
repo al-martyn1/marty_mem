@@ -69,28 +69,40 @@ public:
         MARTY_MEM_ASSERT(checkIncrement(m_incSize));
     }
 
-    virtual void inc() override
+    // Возвращает true, если было переполнение адреса/смещения в сегменте
+    virtual bool inc() override
     {
         m_address += m_incSize;
+        auto addrSaved = m_address;
         m_address &= m_addressMask;
+        return addrSaved!=m_address;
     }
 
-    virtual void dec() override
+    // Возвращает true, если было переполнение адреса/смещения в сегменте
+    virtual bool dec() override
     {
         m_address -= m_incSize;
+        auto addrSaved = m_address;
         m_address &= m_addressMask;
+        return addrSaved!=m_address;
     }
 
-    virtual void add(ptrdiff_t d) override
+    // Возвращает true, если было переполнение адреса/смещения в сегменте
+    virtual bool add(ptrdiff_t d) override
     {
         m_address += uint64_t(d*m_incSize);
+        auto addrSaved = m_address;
         m_address &= m_addressMask;
+        return addrSaved!=m_address;
     }
 
-    virtual void subtract(ptrdiff_t d) override
+    // Возвращает true, если было переполнение адреса/смещения в сегменте
+    virtual bool subtract(ptrdiff_t d) override
     {
         m_address -= uint64_t(d*m_incSize);
+        auto addrSaved = m_address;
         m_address &= m_addressMask;
+        return addrSaved!=m_address;
     }
 
     virtual uint64_t getLinearAddress() override
@@ -136,7 +148,7 @@ public:
         //MARTY_MEM_ASSERT(m_incSize==other.m_incSize); // Разные размерности недопустимы
         checkCompat(other);
         checkDiff(other.m_address-m_address, "the difference in addresses is not a multiple of the type size");
-        return ptrdiff_t(other.m_address - m_address) / m_incSize;
+        return ptrdiff_t(other.m_address - m_address) / ptrdiff_t(m_incSize);
     }
 
     virtual bool equalTo(const VirtualAddress *pv) override
@@ -172,7 +184,7 @@ public:
     : m_address(addr)
     , m_incSize(inc)
     , m_traits (traits)
-    , m_addressMask(bits::makeMask(traits.addressBitSize))
+    , m_addressMask(bits::makeMask(int(traits.addressBitSize)))
     {
         MARTY_MEM_ASSERT(checkTraits(m_traits));
         MARTY_MEM_ASSERT(checkIncrement(m_incSize));
