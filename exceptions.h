@@ -83,7 +83,7 @@ void throwMemoryAccessError(MemoryAccessResultCode rc, const std::string &msg=st
         case MemoryAccessResultCode::accessDenied          : throw access_denied(!msg.empty() ? msg : std::string("access denied"));
         case MemoryAccessResultCode::unassignedMemoryAccess: throw unassigned_memory_access(!msg.empty() ? msg : std::string("unassigned memory access"));
         case MemoryAccessResultCode::unalignedMemoryAccess : throw unassigned_memory_access(!msg.empty() ? msg : std::string("unaligned memory access"));
-        case MemoryAccessResultCode::addressWrap           : throw address_wrap(!msg.empty() ? msg : std::string("address/offset wrap"));
+        case MemoryAccessResultCode::addressWrap           : throw address_wrap(!msg.empty() ? msg : std::string("address/offset wrap occured"));
     }
 }
 

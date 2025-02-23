@@ -1,5 +1,5 @@
 // MemoryAccessRights
-unknown,invalid,undefined = -1
+unknown,invalid,undefined = -1  // invalid MemoryAccessResultCode
 accessGranted             = 0   // Access Granted
 accessDenied                    // Access denied by access rights, no data written/returned
 unassignedMemoryAccess          // Value returned, but some bytes not assigned, unassigned mask also returned

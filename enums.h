@@ -75,9 +75,9 @@ MARTY_CPP_ENUM_CLASS_DESERIALIZE_END( Endianness, std::map, 1 )
 //#!MemoryAccessResultCode
 enum class MemoryAccessResultCode : std::uint32_t
 {
-    unknown                  = (std::uint32_t)(-1) /*!<  */,
-    invalid                  = (std::uint32_t)(-1) /*!<  */,
-    undefined                = (std::uint32_t)(-1) /*!<  */,
+    unknown                  = (std::uint32_t)(-1) /*!< invalid MemoryAccessResultCode */,
+    invalid                  = (std::uint32_t)(-1) /*!< invalid MemoryAccessResultCode */,
+    undefined                = (std::uint32_t)(-1) /*!< invalid MemoryAccessResultCode */,
     accessGranted            = 0x0000 /*!< Access Granted */,
     accessDenied             = 0x0001 /*!< Access denied by access rights, no data written/returned */,
     unassignedMemoryAccess   = 0x0002 /*!< Value returned, but some bytes not assigned, unassigned mask also returned */,
