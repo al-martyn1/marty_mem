@@ -125,15 +125,16 @@ MARTY_CPP_ENUM_CLASS_DESERIALIZE_END( MemoryAccessResultCode, std::map, 1 )
 //#!MemoryOptionFlags
 enum class MemoryOptionFlags : std::uint32_t
 {
-    unknown                   = (std::uint32_t)(-1) /*!<  */,
-    invalid                   = (std::uint32_t)(-1) /*!<  */,
-    undefined                 = (std::uint32_t)(-1) /*!<  */,
-    none                      = 0x0000 /*!<  */,
-    defaultFf                 = 0x0001 /*!< Возвращает 0xFF для неинициализированной памяти, если разрешено, иначе возвращается 0 */,
-    writeSimulate             = 0x0002 /*!< Симуляция записи без самой записи и без обновления мин-макс используемых адресов */,
-    errorOnHitMiss            = 0x0004 /*!< Возвращает MemoryAccessResultCode=:unassignedMemoryAccess, если память не была ранее записана/инициализирована */,
-    errorOnAddressWrap        = 0x0008 /*!< Возвращает MemoryAccessResultCode=:addressWrap, при переполнении адреса и заворачивании его на младшие адреса */,
-    restrictUnalignedAccess   = 0x0010 /*!< Запретить (ограничить) невыровненный доступ */
+    unknown                      = (std::uint32_t)(-1) /*!<  */,
+    invalid                      = (std::uint32_t)(-1) /*!<  */,
+    undefined                    = (std::uint32_t)(-1) /*!<  */,
+    none                         = 0x0000 /*!<  */,
+    defaultFf                    = 0x0001 /*!< Возвращает 0xFF для неинициализированной памяти, если разрешено, иначе возвращается 0 */,
+    writeSimulate                = 0x0002 /*!< Симуляция записи без самой записи и без обновления мин-макс используемых адресов */,
+    errorOnHitMiss               = 0x0004 /*!< Возвращает MemoryAccessResultCode=:unassignedMemoryAccess, если память не была ранее записана/инициализирована */,
+    errorOnAddressWrap           = 0x0008 /*!< Возвращает MemoryAccessResultCode=:addressWrap, при переполнении адреса и заворачивании его на младшие адреса */,
+    errorOnWrapedAddressAccess   = 0x0010 /*!< Возвращает MemoryAccessResultCode=:addressWrap, если при операции изменения итератора было переполнение адреса, но только при последующей попытке доступа по этому адресу */,
+    restrictUnalignedAccess      = 0x0020 /*!< Запретить (ограничить) невыровненный доступ */
 
 }; // enum 
 //#!
@@ -141,35 +142,39 @@ enum class MemoryOptionFlags : std::uint32_t
 MARTY_CPP_MAKE_ENUM_FLAGS(MemoryOptionFlags)
 
 MARTY_CPP_ENUM_FLAGS_SERIALIZE_BEGIN( MemoryOptionFlags, std::map, 1 )
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::unknown                   , "Unknown"                 );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::none                      , "None"                    );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::defaultFf                 , "DefaultFf"               );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::writeSimulate             , "WriteSimulate"           );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss            , "ErrorOnHitMiss"          );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap        , "ErrorOnAddressWrap"      );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess   , "RestrictUnalignedAccess" );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "Unknown"                    );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::none                         , "None"                       );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "DefaultFf"                  );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "WriteSimulate"              );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::errorOnWrapedAddressAccess   , "ErrorOnWrapedAddressAccess" );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "ErrorOnHitMiss"             );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap           , "ErrorOnAddressWrap"         );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess      , "RestrictUnalignedAccess"    );
 MARTY_CPP_ENUM_FLAGS_SERIALIZE_END( MemoryOptionFlags, std::map, 1 )
 
 MARTY_CPP_ENUM_FLAGS_DESERIALIZE_BEGIN( MemoryOptionFlags, std::map, 1 )
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                   , "unknown"                   );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                   , "invalid"                   );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                   , "undefined"                 );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::none                      , "none"                      );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                 , "default-ff"                );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                 , "default_ff"                );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                 , "defaultff"                 );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate             , "write-simulate"            );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate             , "write_simulate"            );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate             , "writesimulate"             );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss            , "error-on-hit-miss"         );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss            , "error_on_hit_miss"         );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss            , "erroronhitmiss"            );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap        , "error-on-address-wrap"     );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap        , "error_on_address_wrap"     );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap        , "erroronaddresswrap"        );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess   , "restrict-unaligned-access" );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess   , "restrict_unaligned_access" );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess   , "restrictunalignedaccess"   );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "unknown"                        );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "invalid"                        );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "undefined"                      );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::none                         , "none"                           );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "default-ff"                     );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "default_ff"                     );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "defaultff"                      );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "write-simulate"                 );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "write_simulate"                 );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "writesimulate"                  );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnWrapedAddressAccess   , "error-on-wraped-address-access" );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnWrapedAddressAccess   , "error_on_wraped_address_access" );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnWrapedAddressAccess   , "erroronwrapedaddressaccess"     );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "error-on-hit-miss"              );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "error_on_hit_miss"              );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "erroronhitmiss"                 );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap           , "error-on-address-wrap"          );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap           , "error_on_address_wrap"          );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap           , "erroronaddresswrap"             );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess      , "restrict-unaligned-access"      );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess      , "restrict_unaligned_access"      );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess      , "restrictunalignedaccess"        );
 MARTY_CPP_ENUM_FLAGS_DESERIALIZE_END( MemoryOptionFlags, std::map, 1 )
 
 

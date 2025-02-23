@@ -49,6 +49,7 @@ struct VirtualAddressMemoryIterator
     Memory                 *pMemory = 0;
     MemoryOptionFlags       memoryOptionFlags = MemoryOptionFlags::none;
     SharedVirtualAddress    virtualAddress;
+    bool                    lastModificationWrapSign = false; // Признак переполнения при последней операции изменения итератора
 
 
     struct AccessProxy
@@ -88,10 +89,11 @@ struct VirtualAddressMemoryIterator
     {
         // MARTY_MEM_ASSERT(pMemory); // Можно создавать итераторы с нулевым указателем на память, но нельзя по ним обращаться к памяти
 
-        mof &= MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss; // Пропускаем извне только эти флаги
+        mof &= MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss | MemoryOptionFlags::errorOnWrapedAddressAccess; // Пропускаем извне только эти флаги
         if (pMemory)
             memoryOptionFlags  = pMemory->getMemoryTraits().memoryOptionFlags;
-        memoryOptionFlags &= ~(MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss); // В опциях memory сбрасываем эти флаги, не используем дефолтные установки
+        // В опциях memory сбрасываем эти флаги, не используем дефолтные установки
+        memoryOptionFlags &= ~(MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss | MemoryOptionFlags::errorOnWrapedAddressAccess); 
         memoryOptionFlags |= mof;
 
         virtualAddress->setIncrement(sizeof(IntType));
@@ -123,12 +125,13 @@ struct VirtualAddressMemoryIterator
 
 
     bool getThrowOnWrapOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnAddressWrap)!=0; }
+    bool getThrowOnWrapAccessOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnWrapedAddressAccess)!=0; }
     void throwAddressWrap    () const { throwMemoryAccessError(MemoryAccessResultCode::addressWrap); }
 
-    void inc     ()             { if (virtualAddress->inc     ( ) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void dec     ()             { if (virtualAddress->dec     ( ) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void add     (ptrdiff_t d)  { if (virtualAddress->add     (d) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void subtract(ptrdiff_t d)  { if (virtualAddress->subtract(d) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void inc     ()             { if ((lastModificationWrapSign=virtualAddress->inc     ( )) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void dec     ()             { if ((lastModificationWrapSign=virtualAddress->dec     ( )) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void add     (ptrdiff_t d)  { if ((lastModificationWrapSign=virtualAddress->add     (d)) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void subtract(ptrdiff_t d)  { if ((lastModificationWrapSign=virtualAddress->subtract(d)) && getThrowOnWrapOption()) throwAddressWrap(); }
 
     VirtualAddressMemoryIterator& operator++()    /* pre  */  { inc(); return *this; }
     VirtualAddressMemoryIterator  operator++(int) /* post */  { auto cp = deepCopy(); inc(); return cp; }
@@ -139,6 +142,8 @@ struct VirtualAddressMemoryIterator
 
     AccessProxy operator*()
     {
+        if (lastModificationWrapSign && getThrowOnWrapAccessOption())
+            throwAddressWrap();
         return AccessProxy(pMemory, virtualAddress->getLinearAddress(), memoryOptionFlags);
     }
 
@@ -176,6 +181,7 @@ struct ConstVirtualAddressMemoryIterator
     const Memory           *pMemory = 0;
     MemoryOptionFlags       memoryOptionFlags = MemoryOptionFlags::none;
     SharedVirtualAddress    virtualAddress;
+    bool                    lastModificationWrapSign = false; // Признак переполнения при последней операции изменения итератора
 
 
     struct AccessProxy
@@ -208,10 +214,11 @@ struct ConstVirtualAddressMemoryIterator
     {
         //MARTY_MEM_ASSERT(pMemory);
 
-        mof &= MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss; // Пропускаем извне только эти флаги
+        mof &= MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss | MemoryOptionFlags::errorOnWrapedAddressAccess; // Пропускаем извне только эти флаги
         if (pMemory)
             memoryOptionFlags  = pMemory->getMemoryTraits().memoryOptionFlags;
-        memoryOptionFlags &= ~(MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss); // В опциях memory сбрасываем эти флаги, не используем дефолтные установки
+        // В опциях memory сбрасываем эти флаги, не используем дефолтные установки
+        memoryOptionFlags &= ~(MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss | MemoryOptionFlags::errorOnWrapedAddressAccess); 
         memoryOptionFlags |= mof;
 
         virtualAddress->setIncrement(sizeof(IntType));
@@ -256,12 +263,13 @@ struct ConstVirtualAddressMemoryIterator
     operator std::string  () const    { return virtualAddress->toString(); }
 
     bool getThrowOnWrapOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnAddressWrap)!=0; }
+    bool getThrowOnWrapAccessOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnWrapedAddressAccess)!=0; }
     void throwAddressWrap    () const { throwMemoryAccessError(MemoryAccessResultCode::addressWrap); }
 
-    void inc     ()             { if (virtualAddress->inc     ( ) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void dec     ()             { if (virtualAddress->dec     ( ) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void add     (ptrdiff_t d)  { if (virtualAddress->add     (d) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void subtract(ptrdiff_t d)  { if (virtualAddress->subtract(d) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void inc     ()             { if ((lastModificationWrapSign=virtualAddress->inc     ( )) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void dec     ()             { if ((lastModificationWrapSign=virtualAddress->dec     ( )) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void add     (ptrdiff_t d)  { if ((lastModificationWrapSign=virtualAddress->add     (d)) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void subtract(ptrdiff_t d)  { if ((lastModificationWrapSign=virtualAddress->subtract(d)) && getThrowOnWrapOption()) throwAddressWrap(); }
 
     ConstVirtualAddressMemoryIterator& operator++()    /* pre  */  { inc(); return *this; }
     ConstVirtualAddressMemoryIterator  operator++(int) /* post */  { auto cp = deepCopy(); inc(); return cp; }
@@ -272,6 +280,8 @@ struct ConstVirtualAddressMemoryIterator
 
     AccessProxy operator*()
     {
+        if (lastModificationWrapSign && getThrowOnWrapAccessOption())
+            throwAddressWrap();
         return AccessProxy(pMemory, virtualAddress->getLinearAddress(), memoryOptionFlags);
     }
 
