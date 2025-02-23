@@ -320,23 +320,22 @@ class Memory
             }
         }
 
-        if (!pResVal)
-            return MemoryAccessResultCode::accessGranted;
-
         uint64_t resVal = 0;
 
         auto idxBase = calcMemParaAlignedIndex(addr, size);
         uint64_t testAddr = (addr&0x0Full)+idxBase;
         for(std::size_t i=0u; i!=size; ++i)
         {
-            resVal <<= 8;
-            resVal |= it->second.bytes[idxBase+i];
             uint64_t prevTestAddr = testAddr++;
             if (prevTestAddr>testAddr && (memoryOptionFlags&MemoryOptionFlags::errorOnAddressWrap)!=0)
                 return MemoryAccessResultCode::addressWrap;
+
+            resVal <<= 8;
+            resVal |= it->second.bytes[idxBase+i];
         }
 
-        *pResVal = resVal;
+        if (pResVal)
+            *pResVal = resVal;
 
         return MemoryAccessResultCode::accessGranted;
     }
@@ -387,10 +386,11 @@ class Memory
         uint64_t testAddr = (addr&0x0Full)+idxBase;
         for(std::size_t i=0u; i!=size; ++i, val>>=8)
         {
-            it->second.bytes[idxBase+i] = uint8_t(val);
             uint64_t prevTestAddr = testAddr++;
             if (prevTestAddr>testAddr && (memoryOptionFlags&MemoryOptionFlags::errorOnAddressWrap)!=0)
                 return MemoryAccessResultCode::addressWrap;
+
+            it->second.bytes[idxBase+i] = uint8_t(val);
         }
 
         return MemoryAccessResultCode::accessGranted;
