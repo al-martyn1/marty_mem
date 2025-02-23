@@ -85,10 +85,11 @@ struct VirtualAddressMemoryIterator
 
     explicit VirtualAddressMemoryIterator(Memory *pm, SharedVirtualAddress va, MemoryOptionFlags mof=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss) : pMemory(pm), virtualAddress(va)
     {
-        MARTY_MEM_ASSERT(pMemory);
+        // MARTY_MEM_ASSERT(pMemory); // Можно создавать итераторы с нулевым указателем на память, но нельзя по ним обращаться к памяти
 
         mof &= MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss; // Пропускаем извне только эти флаги
-        memoryOptionFlags  = pMemory->getMemoryTraits().memoryOptionFlags;
+        if (pMemory)
+            memoryOptionFlags  = pMemory->getMemoryTraits().memoryOptionFlags;
         memoryOptionFlags &= ~(MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss); // В опциях memory сбрасываем эти флаги, не используем дефолтные установки
         memoryOptionFlags |= mof;
 
