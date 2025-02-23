@@ -39,6 +39,13 @@ namespace mem{
 struct VirtualAddress;
 using SharedVirtualAddress = std::shared_ptr<VirtualAddress>;
 
+struct AddressInfo
+{
+   uint64_t    base  ;
+   uint64_t    offset;
+
+}; // struct AddressInfo
+
 
 //----------------------------------------------------------------------------
 struct VirtualAddress
@@ -55,6 +62,9 @@ struct VirtualAddress
     virtual std::string toString() = 0;
     virtual ptrdiff_t distanceTo(const VirtualAddress *pv) = 0;  // "Расстояние" от текущего до pv - сколько надо прибавить к текущему, чтобы получить pv => *pv > *this => dist = pv - dist
     virtual bool equalTo(const VirtualAddress *pv) = 0;
+    virtual AddressInfo getAddressInfo() = 0;
+    virtual bool checkAddressInValidSizeRange() = 0;
+
 
 }; // struct VirtualAddress
 

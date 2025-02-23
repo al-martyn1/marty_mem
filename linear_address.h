@@ -34,7 +34,8 @@ namespace mem{
 //----------------------------------------------------------------------------
 struct LinearAddressTraits
 {
-    uint64_t addressBitSize  = 32u;
+    uint64_t addressBitSize     = 32u;
+    uint64_t extraWrapBitSize   =  0u;
 
 }; // struct LinearAddressTraits
 
@@ -55,13 +56,40 @@ inline bool operator!=(const LinearAddressTraits &t1, const LinearAddressTraits 
 //----------------------------------------------------------------------------
 class LinearAddress : public VirtualAddress
 {
-    uint64_t                 m_address     = 0;
-    uint64_t                 m_incSize     = 1;
-    LinearAddressTraits      m_traits      = LinearAddressTraits();
-    uint64_t                 m_addressMask = 0;
+    uint64_t                 m_address       = 0;
+    uint64_t                 m_incSize       = 1;
+    LinearAddressTraits      m_traits        = LinearAddressTraits();
+    uint64_t                 m_addressMask   = 0;
+    uint64_t                 m_extraWrapMask = 0;
+
+    // Возвращает true, если по доп маске не было переполнения
+    bool checkExtraWrap(uint64_t addrPrev) const
+    {
+        if (m_traits.extraWrapBitSize==0) return true;
+
+        uint64_t addrMasked = m_address & ~m_extraWrapMask;
+        addrPrev &= ~m_extraWrapMask;
+
+        return addrPrev==addrMasked;
+    }
 
 public:
 
+    virtual bool checkAddressInValidSizeRange() override
+    {
+        uint64_t m_addressTmp = m_address;
+        m_addressTmp &= m_addressMask;
+
+        return m_addressTmp==m_address;
+    }
+
+    virtual AddressInfo getAddressInfo() override
+    {
+        AddressInfo ai;
+        ai.base   = m_address;
+        ai.offset = 0;
+        return ai;
+    }
 
     virtual void setIncrement(uint64_t v) override
     {
@@ -75,7 +103,7 @@ public:
         m_address += m_incSize;
         auto addrSaved = m_address;
         m_address &= m_addressMask;
-        return addrSaved!=m_address;
+        return addrSaved!=m_address && !checkExtraWrap(addrSaved);
     }
 
     // Возвращает true, если было переполнение адреса/смещения в сегменте
@@ -84,7 +112,7 @@ public:
         m_address -= m_incSize;
         auto addrSaved = m_address;
         m_address &= m_addressMask;
-        return addrSaved!=m_address;
+        return addrSaved!=m_address && !checkExtraWrap(addrSaved);
     }
 
     // Возвращает true, если было переполнение адреса/смещения в сегменте
@@ -93,7 +121,7 @@ public:
         m_address += uint64_t(d*m_incSize);
         auto addrSaved = m_address;
         m_address &= m_addressMask;
-        return addrSaved!=m_address;
+        return addrSaved!=m_address && !checkExtraWrap(addrSaved);
     }
 
     // Возвращает true, если было переполнение адреса/смещения в сегменте
@@ -102,7 +130,7 @@ public:
         m_address -= uint64_t(d*m_incSize);
         auto addrSaved = m_address;
         m_address &= m_addressMask;
-        return addrSaved!=m_address;
+        return addrSaved!=m_address && !checkExtraWrap(addrSaved);
     }
 
     virtual uint64_t getLinearAddress() override
@@ -169,7 +197,8 @@ public:
 
     static bool checkTraits(const LinearAddressTraits &traits)
     {
-        MARTY_USED(traits);
+        if (traits.addressBitSize<traits.extraWrapBitSize)
+            return false;
         return true;
     }
 
@@ -185,6 +214,7 @@ public:
     , m_incSize(inc)
     , m_traits (traits)
     , m_addressMask(bits::makeMask(int(traits.addressBitSize)))
+    , m_extraWrapMask(bits::makeMask(int(traits.extraWrapBitSize)))
     {
         MARTY_MEM_ASSERT(checkTraits(m_traits));
         MARTY_MEM_ASSERT(checkIncrement(m_incSize));

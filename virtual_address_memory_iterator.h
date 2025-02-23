@@ -19,6 +19,8 @@
 #include "virtual_address.h"
 #include "linear_address.h"
 #include "segmented_address.h"
+#include "marty_mem.h"
+
 
 //----------------------------------------------------------------------------
 #include <exception>
@@ -64,7 +66,6 @@ struct VirtualAddressMemoryIterator
 
         AccessProxy& operator=(IntType b)
         {
-            MARTY_MEM_ASSERT(pMemory);
             auto rc = pMemory->write(b, address, memoryOptionFlags);
             throwMemoryAccessError(rc);
             return *this;
@@ -94,6 +95,11 @@ struct VirtualAddressMemoryIterator
         memoryOptionFlags |= mof;
 
         virtualAddress->setIncrement(sizeof(IntType));
+    }
+
+    AddressInfo getAddressInfo() const
+    {
+        return virtualAddress->getAddressInfo();
     }
 
     VirtualAddressMemoryIterator deepCopy() const
@@ -200,14 +206,23 @@ struct ConstVirtualAddressMemoryIterator
 
     explicit ConstVirtualAddressMemoryIterator(const Memory *pm, SharedVirtualAddress va, MemoryOptionFlags mof=MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss) : pMemory(pm), virtualAddress(va)
     {
-        MARTY_MEM_ASSERT(pMemory);
+        //MARTY_MEM_ASSERT(pMemory);
 
         mof &= MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss; // Пропускаем извне только эти флаги
-        memoryOptionFlags  = pMemory->getMemoryTraits().memoryOptionFlags;
+        if (pMemory)
+            memoryOptionFlags  = pMemory->getMemoryTraits().memoryOptionFlags;
         memoryOptionFlags &= ~(MemoryOptionFlags::errorOnAddressWrap | MemoryOptionFlags::errorOnHitMiss); // В опциях memory сбрасываем эти флаги, не используем дефолтные установки
         memoryOptionFlags |= mof;
 
         virtualAddress->setIncrement(sizeof(IntType));
+
+        if (!virtualAddress->checkAddressInValidSizeRange() && (memoryOptionFlags&MemoryOptionFlags::errorOnAddressWrap)!=0)
+            throwMemoryAccessError(MemoryAccessResultCode::addressWrap);
+    }
+
+    AddressInfo getAddressInfo() const
+    {
+        return virtualAddress->getAddressInfo();
     }
 
     ConstVirtualAddressMemoryIterator deepCopy() const

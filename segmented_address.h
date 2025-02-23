@@ -80,6 +80,25 @@ class SegmentedAddress : public VirtualAddress
 public:
 
 
+    virtual bool checkAddressInValidSizeRange() override
+    {
+        uint64_t m_segmentTmp = m_segment;
+        uint64_t m_offsetTmp  = m_offset ;
+        m_segmentTmp &= m_segmentMask;
+        m_offsetTmp  &= m_offsetMask ;
+
+        return m_segmentTmp == m_segment &&
+               m_offsetTmp  == m_offset ;
+    }
+
+    virtual AddressInfo getAddressInfo() override
+    {
+        AddressInfo ai;
+        ai.base   = m_segment;
+        ai.offset = m_offset ;
+        return ai;
+    }
+
     virtual void setIncrement(uint64_t v) override
     {
         m_incSize = v;
