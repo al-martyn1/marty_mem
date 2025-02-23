@@ -128,10 +128,10 @@ struct VirtualAddressMemoryIterator
     bool getThrowOnWrapAccessOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnWrapedAddressAccess)!=0; }
     void throwAddressWrap    () const { throwMemoryAccessError(MemoryAccessResultCode::addressWrap); }
 
-    void inc     ()             { if ((lastModificationWrapSign=virtualAddress->inc     ( )) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void dec     ()             { if ((lastModificationWrapSign=virtualAddress->dec     ( )) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void add     (ptrdiff_t d)  { if ((lastModificationWrapSign=virtualAddress->add     (d)) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void subtract(ptrdiff_t d)  { if ((lastModificationWrapSign=virtualAddress->subtract(d)) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void inc     ()             { lastModificationWrapSign=virtualAddress->inc     ( ); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
+    void dec     ()             { lastModificationWrapSign=virtualAddress->dec     ( ); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
+    void add     (ptrdiff_t d)  { lastModificationWrapSign=virtualAddress->add     (d); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
+    void subtract(ptrdiff_t d)  { lastModificationWrapSign=virtualAddress->subtract(d); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
 
     VirtualAddressMemoryIterator& operator++()    /* pre  */  { inc(); return *this; }
     VirtualAddressMemoryIterator  operator++(int) /* post */  { auto cp = deepCopy(); inc(); return cp; }
@@ -266,10 +266,10 @@ struct ConstVirtualAddressMemoryIterator
     bool getThrowOnWrapAccessOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnWrapedAddressAccess)!=0; }
     void throwAddressWrap    () const { throwMemoryAccessError(MemoryAccessResultCode::addressWrap); }
 
-    void inc     ()             { if ((lastModificationWrapSign=virtualAddress->inc     ( )) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void dec     ()             { if ((lastModificationWrapSign=virtualAddress->dec     ( )) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void add     (ptrdiff_t d)  { if ((lastModificationWrapSign=virtualAddress->add     (d)) && getThrowOnWrapOption()) throwAddressWrap(); }
-    void subtract(ptrdiff_t d)  { if ((lastModificationWrapSign=virtualAddress->subtract(d)) && getThrowOnWrapOption()) throwAddressWrap(); }
+    void inc     ()             { lastModificationWrapSign=virtualAddress->inc     ( ); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
+    void dec     ()             { lastModificationWrapSign=virtualAddress->dec     ( ); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
+    void add     (ptrdiff_t d)  { lastModificationWrapSign=virtualAddress->add     (d); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
+    void subtract(ptrdiff_t d)  { lastModificationWrapSign=virtualAddress->subtract(d); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
 
     ConstVirtualAddressMemoryIterator& operator++()    /* pre  */  { inc(); return *this; }
     ConstVirtualAddressMemoryIterator  operator++(int) /* post */  { auto cp = deepCopy(); inc(); return cp; }
