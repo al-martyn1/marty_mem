@@ -749,6 +749,12 @@ struct MemoryIterator : public MemoryIteratorBaseImpl<IntType>
 
     operator std::uint64_t() const               { return BaseImpl::address; }
 
+    operator std::string() const
+    {
+        return utils::makeHexString<std::string>(BaseImpl::address, std::size_t(8)); // pass num bytes
+    }
+
+
     MemoryIterator& operator++()     /* pre */   { BaseImpl::inc(getThrowOnWrapOption()); return *this; }
     MemoryIterator& operator--()     /* pre */   { BaseImpl::dec(getThrowOnWrapOption()); return *this; }
     MemoryIterator  operator++(int)  /* post */  { auto cp = *this; BaseImpl::inc(getThrowOnWrapOption()); return cp; }
@@ -851,6 +857,12 @@ struct ConstMemoryIterator : public MemoryIteratorBaseImpl<IntType>
     }
 
     operator std::uint64_t() const               { return BaseImpl::address; }
+
+    operator std::string() const
+    {
+        return utils::makeHexString<std::string>(BaseImpl::address, std::size_t(8)); // pass num bytes
+    }
+
 
     ConstMemoryIterator& operator++()     /* pre */   { BaseImpl::inc(getThrowOnWrapOption()); return *this; }
     ConstMemoryIterator& operator--()     /* pre */   { BaseImpl::dec(getThrowOnWrapOption()); return *this; }
