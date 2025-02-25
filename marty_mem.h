@@ -481,7 +481,7 @@ public:
 
 
     template< typename IntType, typename std::enable_if< std::is_integral< IntType >::value, bool>::type = true >
-    MemoryAccessResultCode read(IntType *pResVal, uint64_t addr, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead)
+    MemoryAccessResultCode read(IntType *pResVal, uint64_t addr, MemoryOptionFlags memoryOptionFlags, MemoryAccessRights requestedMode=MemoryAccessRights::executeRead) const
     {
         uint64_t val64 = 0;
         if (checkAddressAligned(addr, sizeof(IntType)))

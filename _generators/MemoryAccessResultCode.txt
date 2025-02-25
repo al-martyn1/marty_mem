@@ -5,3 +5,4 @@ accessDenied                    // Access denied by access rights, no data writt
 unassignedMemoryAccess          // Value returned, but some bytes not assigned, unassigned mask also returned
 unalignedMemoryAccess           // Unaligned address taken for aligned access, no data written/returned
 addressWrap                     // Address wrap detected
+memoryFillError                 // Memory fill error

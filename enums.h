@@ -40,33 +40,33 @@ enum class Endianness : std::uint32_t
 MARTY_CPP_MAKE_ENUM_IS_FLAGS_FOR_NON_FLAGS_ENUM(Endianness)
 
 MARTY_CPP_ENUM_CLASS_SERIALIZE_BEGIN( Endianness, std::map, 1 )
-    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::unknown          , "Unknown"        );
-    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::bigEndian        , "BigEndian"      );
-    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::littleEndian     , "LittleEndian"   );
-    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::leMiddleEndian   , "LeMiddleEndian" );
-    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::beMiddleEndian   , "BeMiddleEndian" );
     MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::middleEndian     , "MiddleEndian"   );
+    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::beMiddleEndian   , "BeMiddleEndian" );
+    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::bigEndian        , "BigEndian"      );
+    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::leMiddleEndian   , "LeMiddleEndian" );
+    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::littleEndian     , "LittleEndian"   );
+    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( Endianness::unknown          , "Unknown"        );
 MARTY_CPP_ENUM_CLASS_SERIALIZE_END( Endianness, std::map, 1 )
 
 MARTY_CPP_ENUM_CLASS_DESERIALIZE_BEGIN( Endianness, std::map, 1 )
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::unknown          , "unknown"          );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::unknown          , "invalid"          );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::unknown          , "undefined"        );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::bigEndian        , "big-endian"       );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::bigEndian        , "big_endian"       );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::bigEndian        , "bigendian"        );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::littleEndian     , "little-endian"    );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::littleEndian     , "little_endian"    );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::littleEndian     , "littleendian"     );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::leMiddleEndian   , "le-middle-endian" );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::leMiddleEndian   , "le_middle_endian" );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::leMiddleEndian   , "lemiddleendian"   );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::beMiddleEndian   , "be-middle-endian" );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::beMiddleEndian   , "be_middle_endian" );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::beMiddleEndian   , "bemiddleendian"   );
     MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::middleEndian     , "middle-endian"    );
     MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::middleEndian     , "middle_endian"    );
     MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::middleEndian     , "middleendian"     );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::beMiddleEndian   , "be-middle-endian" );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::beMiddleEndian   , "be_middle_endian" );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::beMiddleEndian   , "bemiddleendian"   );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::bigEndian        , "big-endian"       );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::bigEndian        , "big_endian"       );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::bigEndian        , "bigendian"        );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::leMiddleEndian   , "le-middle-endian" );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::leMiddleEndian   , "le_middle_endian" );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::leMiddleEndian   , "lemiddleendian"   );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::littleEndian     , "little-endian"    );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::littleEndian     , "little_endian"    );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::littleEndian     , "littleendian"     );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::unknown          , "undefined"        );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::unknown          , "invalid"          );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( Endianness::unknown          , "unknown"          );
 MARTY_CPP_ENUM_CLASS_DESERIALIZE_END( Endianness, std::map, 1 )
 
 
@@ -82,7 +82,8 @@ enum class MemoryAccessResultCode : std::uint32_t
     accessDenied             = 0x0001 /*!< Access denied by access rights, no data written/returned */,
     unassignedMemoryAccess   = 0x0002 /*!< Value returned, but some bytes not assigned, unassigned mask also returned */,
     unalignedMemoryAccess    = 0x0003 /*!< Unaligned address taken for aligned access, no data written/returned */,
-    addressWrap              = 0x0004 /*!< Address wrap detected */
+    addressWrap              = 0x0004 /*!< Address wrap detected */,
+    memoryFillError          = 0x0005 /*!< Memory fill error */
 
 }; // enum 
 //#!
@@ -90,33 +91,37 @@ enum class MemoryAccessResultCode : std::uint32_t
 MARTY_CPP_MAKE_ENUM_IS_FLAGS_FOR_NON_FLAGS_ENUM(MemoryAccessResultCode)
 
 MARTY_CPP_ENUM_CLASS_SERIALIZE_BEGIN( MemoryAccessResultCode, std::map, 1 )
-    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::unknown                  , "Unknown"                );
-    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::accessGranted            , "AccessGranted"          );
-    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::accessDenied             , "AccessDenied"           );
+    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::memoryFillError          , "MemoryFillError"        );
     MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::addressWrap              , "AddressWrap"            );
-    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::unalignedMemoryAccess    , "UnalignedMemoryAccess"  );
     MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::unassignedMemoryAccess   , "UnassignedMemoryAccess" );
+    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::unalignedMemoryAccess    , "UnalignedMemoryAccess"  );
+    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::accessDenied             , "AccessDenied"           );
+    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::accessGranted            , "AccessGranted"          );
+    MARTY_CPP_ENUM_CLASS_SERIALIZE_ITEM( MemoryAccessResultCode::unknown                  , "Unknown"                );
 MARTY_CPP_ENUM_CLASS_SERIALIZE_END( MemoryAccessResultCode, std::map, 1 )
 
 MARTY_CPP_ENUM_CLASS_DESERIALIZE_BEGIN( MemoryAccessResultCode, std::map, 1 )
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unknown                  , "unknown"                  );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unknown                  , "invalid"                  );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unknown                  , "undefined"                );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessGranted            , "access-granted"           );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessGranted            , "access_granted"           );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessGranted            , "accessgranted"            );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessDenied             , "access-denied"            );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessDenied             , "access_denied"            );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessDenied             , "accessdenied"             );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::memoryFillError          , "memory-fill-error"        );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::memoryFillError          , "memory_fill_error"        );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::memoryFillError          , "memoryfillerror"          );
     MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::addressWrap              , "address-wrap"             );
     MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::addressWrap              , "address_wrap"             );
     MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::addressWrap              , "addresswrap"              );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unalignedMemoryAccess    , "unaligned-memory-access"  );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unalignedMemoryAccess    , "unaligned_memory_access"  );
-    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unalignedMemoryAccess    , "unalignedmemoryaccess"    );
     MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unassignedMemoryAccess   , "unassigned-memory-access" );
     MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unassignedMemoryAccess   , "unassigned_memory_access" );
     MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unassignedMemoryAccess   , "unassignedmemoryaccess"   );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unalignedMemoryAccess    , "unaligned-memory-access"  );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unalignedMemoryAccess    , "unaligned_memory_access"  );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unalignedMemoryAccess    , "unalignedmemoryaccess"    );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessDenied             , "access-denied"            );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessDenied             , "access_denied"            );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessDenied             , "accessdenied"             );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessGranted            , "access-granted"           );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessGranted            , "access_granted"           );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::accessGranted            , "accessgranted"            );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unknown                  , "undefined"                );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unknown                  , "invalid"                  );
+    MARTY_CPP_ENUM_CLASS_DESERIALIZE_ITEM( MemoryAccessResultCode::unknown                  , "unknown"                  );
 MARTY_CPP_ENUM_CLASS_DESERIALIZE_END( MemoryAccessResultCode, std::map, 1 )
 
 
@@ -142,39 +147,39 @@ enum class MemoryOptionFlags : std::uint32_t
 MARTY_CPP_MAKE_ENUM_FLAGS(MemoryOptionFlags)
 
 MARTY_CPP_ENUM_FLAGS_SERIALIZE_BEGIN( MemoryOptionFlags, std::map, 1 )
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "Unknown"                    );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::none                         , "None"                       );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "DefaultFf"                  );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "WriteSimulate"              );
     MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::errorOnWrapedAddressAccess   , "ErrorOnWrapedAddressAccess" );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "ErrorOnHitMiss"             );
     MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap           , "ErrorOnAddressWrap"         );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "WriteSimulate"              );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "DefaultFf"                  );
     MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess      , "RestrictUnalignedAccess"    );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "ErrorOnHitMiss"             );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::none                         , "None"                       );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "Unknown"                    );
 MARTY_CPP_ENUM_FLAGS_SERIALIZE_END( MemoryOptionFlags, std::map, 1 )
 
 MARTY_CPP_ENUM_FLAGS_DESERIALIZE_BEGIN( MemoryOptionFlags, std::map, 1 )
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "unknown"                        );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "invalid"                        );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "undefined"                      );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::none                         , "none"                           );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "default-ff"                     );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "default_ff"                     );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "defaultff"                      );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "write-simulate"                 );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "write_simulate"                 );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "writesimulate"                  );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnWrapedAddressAccess   , "error-on-wraped-address-access" );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnWrapedAddressAccess   , "error_on_wraped_address_access" );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnWrapedAddressAccess   , "erroronwrapedaddressaccess"     );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "error-on-hit-miss"              );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "error_on_hit_miss"              );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "erroronhitmiss"                 );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap           , "error-on-address-wrap"          );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap           , "error_on_address_wrap"          );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnAddressWrap           , "erroronaddresswrap"             );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "write-simulate"                 );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "write_simulate"                 );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::writeSimulate                , "writesimulate"                  );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "default-ff"                     );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "default_ff"                     );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::defaultFf                    , "defaultff"                      );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess      , "restrict-unaligned-access"      );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess      , "restrict_unaligned_access"      );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::restrictUnalignedAccess      , "restrictunalignedaccess"        );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "error-on-hit-miss"              );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "erroronhitmiss"                 );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::errorOnHitMiss               , "error_on_hit_miss"              );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::none                         , "none"                           );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "undefined"                      );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "invalid"                        );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryOptionFlags::unknown                      , "unknown"                        );
 MARTY_CPP_ENUM_FLAGS_DESERIALIZE_END( MemoryOptionFlags, std::map, 1 )
 
 
@@ -203,44 +208,44 @@ enum class MemoryAccessRights : std::uint32_t
 MARTY_CPP_MAKE_ENUM_FLAGS(MemoryAccessRights)
 
 MARTY_CPP_ENUM_FLAGS_SERIALIZE_BEGIN( MemoryAccessRights, std::map, 1 )
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::unknown            , "Unknown"          );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::executeRead        , "ExecuteRead"      );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::readWrite          , "ReadWrite"        );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::write              , "Write"            );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::noAccess           , "NoAccess"         );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::read               , "Read"             );
-    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::execute            , "Execute"          );
     MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::executeReadWrite   , "ExecuteReadWrite" );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::execute            , "Execute"          );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::write              , "Write"            );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::read               , "Read"             );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::readWrite          , "ReadWrite"        );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::noAccess           , "NoAccess"         );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::executeRead        , "ExecuteRead"      );
+    MARTY_CPP_ENUM_FLAGS_SERIALIZE_ITEM( MemoryAccessRights::unknown            , "Unknown"          );
 MARTY_CPP_ENUM_FLAGS_SERIALIZE_END( MemoryAccessRights, std::map, 1 )
 
 MARTY_CPP_ENUM_FLAGS_DESERIALIZE_BEGIN( MemoryAccessRights, std::map, 1 )
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::unknown            , "unknown"            );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::unknown            , "invalid"            );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::unknown            , "undefined"          );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::executeRead        , "execute-read"       );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::executeRead        , "execute_read"       );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::executeRead        , "executeread"        );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::readWrite          , "read-write"         );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::readWrite          , "read_write"         );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::readWrite          , "readwrite"          );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::write              , "write"              );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::write              , "write-only"         );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::write              , "write_only"         );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::write              , "writeonly"          );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::noAccess           , "no-access"          );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::noAccess           , "no_access"          );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::noAccess           , "noaccess"           );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::read               , "read"               );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::read               , "read-only"          );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::read               , "read_only"          );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::read               , "readonly"           );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::execute            , "execute"            );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::execute            , "execute-only"       );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::execute            , "execute_only"       );
-    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::execute            , "executeonly"        );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::executeReadWrite   , "execute-read-write" );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::executeReadWrite   , "execute_read_write" );
     MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::executeReadWrite   , "executereadwrite"   );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::execute            , "execute-only"       );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::execute            , "execute_only"       );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::execute            , "executeonly"        );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::execute            , "execute"            );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::write              , "write_only"         );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::write              , "writeonly"          );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::write              , "write-only"         );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::write              , "write"              );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::read               , "read-only"          );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::read               , "read_only"          );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::read               , "readonly"           );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::read               , "read"               );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::readWrite          , "read-write"         );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::readWrite          , "read_write"         );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::readWrite          , "readwrite"          );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::noAccess           , "no-access"          );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::noAccess           , "no_access"          );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::noAccess           , "noaccess"           );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::executeRead        , "execute-read"       );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::executeRead        , "execute_read"       );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::executeRead        , "executeread"        );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::unknown            , "undefined"          );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::unknown            , "invalid"            );
+    MARTY_CPP_ENUM_FLAGS_DESERIALIZE_ITEM( MemoryAccessRights::unknown            , "unknown"            );
 MARTY_CPP_ENUM_FLAGS_DESERIALIZE_END( MemoryAccessRights, std::map, 1 )
 
 } // namespace mem
