@@ -80,7 +80,7 @@ class SegmentedAddress : public VirtualAddress
 public:
 
 
-    virtual bool checkAddressInValidSizeRange() override
+    virtual bool checkAddressInValidSizeRange() const override
     {
         uint64_t m_segmentTmp = m_segment;
         uint64_t m_offsetTmp  = m_offset ;
@@ -91,7 +91,7 @@ public:
                m_offsetTmp  == m_offset ;
     }
 
-    virtual AddressInfo getAddressInfo() override
+    virtual AddressInfo getAddressInfo() const override
     {
         AddressInfo ai;
         ai.base   = m_segment;
@@ -141,12 +141,12 @@ public:
         return offsSaved!=m_offset;
     }
 
-    virtual uint64_t getLinearAddress() override
+    virtual uint64_t getLinearAddress() const override
     {
         return ((m_segment&m_segmentMask)<<m_segmentShift) + (m_offset&m_offsetMask);
     }
 
-    virtual std::string toString() override
+    virtual std::string toString() const override
     {
         auto numDigitsSeg = m_traits.segmentBitSize/4;
         if (m_traits.segmentBitSize%4)
@@ -173,7 +173,7 @@ public:
             throw incompatible_address_pointers("incompatible address pointers: pointer traits is different between two pointers");
     }
     
-    void checkDiff(uint64_t diff, const char *msg)
+    void checkDiff(uint64_t diff, const char *msg) const
     {
         int64_t diffMod = int64_t(diff)<0 ? -int64_t(diff) : int64_t(diff);
         auto sizeofIntType1 = m_incSize - 1u;
@@ -184,7 +184,7 @@ public:
     }
 
     // "Расстояние" от текущего до pv - сколько надо прибавить к текущему, чтобы получить pv => *pv > *this => dist = pv - dist
-    virtual ptrdiff_t distanceTo(const VirtualAddress *pv) override
+    virtual ptrdiff_t distanceTo(const VirtualAddress *pv) const override
     {
         const SegmentedAddress &other = dynamic_cast<const SegmentedAddress&>(*pv); // Чтобы самим не кидать исключение bad_cast, используем ссылки
         checkCompat(other);
@@ -194,7 +194,7 @@ public:
         return ptrdiff_t(diff) / ptrdiff_t(m_incSize);
     }
 
-    virtual bool equalTo(const VirtualAddress *pv) override
+    virtual bool equalTo(const VirtualAddress *pv) const override
     {
         const SegmentedAddress &other = dynamic_cast<const SegmentedAddress&>(*pv); // Чтобы самим не кидать исключение bad_cast, используем ссылки
         checkCompat(other);
@@ -204,7 +204,7 @@ public:
         return m_segment==other.m_segment && m_offset==other.m_offset;
     }
 
-    virtual SharedVirtualAddress clone() override
+    virtual SharedVirtualAddress clone() const override
     {
         auto copyOfThis = std::make_shared<SegmentedAddress>(*this);
         return std::static_pointer_cast<VirtualAddress>(copyOfThis);

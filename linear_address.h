@@ -75,7 +75,7 @@ class LinearAddress : public VirtualAddress
 
 public:
 
-    virtual bool checkAddressInValidSizeRange() override
+    virtual bool checkAddressInValidSizeRange() const override
     {
         uint64_t m_addressTmp = m_address;
         m_addressTmp &= m_addressMask;
@@ -83,7 +83,7 @@ public:
         return m_addressTmp==m_address;
     }
 
-    virtual AddressInfo getAddressInfo() override
+    virtual AddressInfo getAddressInfo() const override
     {
         AddressInfo ai;
         ai.base   = m_address;
@@ -133,12 +133,12 @@ public:
         return addrSaved!=m_address && !checkExtraWrap(addrSaved);
     }
 
-    virtual uint64_t getLinearAddress() override
+    virtual uint64_t getLinearAddress() const override
     {
         return m_address;
     }
 
-    virtual std::string toString() override
+    virtual std::string toString() const override
     {
         auto numDigits = m_traits.addressBitSize/4;
         if (m_traits.addressBitSize%4)
@@ -159,7 +159,7 @@ public:
         //     throw incompatible_address_pointers("incompatible address pointers: pointer traits is different between two pointers");
     }
 
-    void checkDiff(uint64_t diff, const char *msg)
+    void checkDiff(uint64_t diff, const char *msg) const
     {
         int64_t diffMod = int64_t(diff)<0 ? -int64_t(diff) : int64_t(diff);
         auto sizeofIntType1 = m_incSize - 1u;
@@ -170,7 +170,7 @@ public:
     }
 
     // "Расстояние" от текущего до pv - сколько надо прибавить к текущему, чтобы получить pv => *pv > *this => dist = pv - dist
-    virtual ptrdiff_t distanceTo(const VirtualAddress *pv) override
+    virtual ptrdiff_t distanceTo(const VirtualAddress *pv) const override
     {
         const LinearAddress &other = dynamic_cast<const LinearAddress&>(*pv); // Чтобы самим не кидать исключение bad_cast, используем ссылки
         //MARTY_MEM_ASSERT(m_incSize==other.m_incSize); // Разные размерности недопустимы
@@ -179,7 +179,7 @@ public:
         return ptrdiff_t(other.m_address - m_address) / ptrdiff_t(m_incSize);
     }
 
-    virtual bool equalTo(const VirtualAddress *pv) override
+    virtual bool equalTo(const VirtualAddress *pv) const override
     {
         const LinearAddress &other = dynamic_cast<const LinearAddress&>(*pv); // Чтобы самим не кидать исключение bad_cast, используем ссылки
         // MARTY_MEM_ASSERT(m_incSize==other.m_incSize); // Разные размерности недопустимы
@@ -188,7 +188,7 @@ public:
         return other.m_address == m_address;
     }
 
-    virtual SharedVirtualAddress clone() override
+    virtual SharedVirtualAddress clone() const override
     {
         auto copyOfThis = std::make_shared<LinearAddress>(*this);
         return std::static_pointer_cast<VirtualAddress>(copyOfThis);
