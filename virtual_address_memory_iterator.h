@@ -150,21 +150,21 @@ struct VirtualAddressMemoryIterator
 }; // struct VirtualAddressMemoryIterator
 
 
-template<typename IntType> VirtualAddressMemoryIterator<IntType> operator+(VirtualAddressMemoryIterator<IntType> it, ptrdiff_t d) { auto cp = it.deepCopy(); cp += d; return cp; }
-template<typename IntType> VirtualAddressMemoryIterator<IntType> operator+(ptrdiff_t d, VirtualAddressMemoryIterator<IntType> it) { auto cp = it.deepCopy(); cp += d; return cp; }
-template<typename IntType> VirtualAddressMemoryIterator<IntType> operator-(VirtualAddressMemoryIterator<IntType> it, ptrdiff_t d) { auto cp = it.deepCopy(); cp -= d; return cp; }
+template<typename IntType> VirtualAddressMemoryIterator<IntType> operator+(const VirtualAddressMemoryIterator<IntType> &it, ptrdiff_t d) { auto cp = it.deepCopy(); cp += d; return cp; }
+template<typename IntType> VirtualAddressMemoryIterator<IntType> operator+(ptrdiff_t d, const VirtualAddressMemoryIterator<IntType> &it) { auto cp = it.deepCopy(); cp += d; return cp; }
+template<typename IntType> VirtualAddressMemoryIterator<IntType> operator-(const VirtualAddressMemoryIterator<IntType> &it, ptrdiff_t d) { auto cp = it.deepCopy(); cp -= d; return cp; }
 
-template<typename IntType> ptrdiff_t operator-(VirtualAddressMemoryIterator<IntType> it1, VirtualAddressMemoryIterator<IntType> it2)
+template<typename IntType> ptrdiff_t operator-(const VirtualAddressMemoryIterator<IntType> &it1, const VirtualAddressMemoryIterator<IntType> &it2)
 {
     return it2.virtualAddress->distanceTo(it1.virtualAddress.get());
 }
 
-template<typename IntType> bool operator==(VirtualAddressMemoryIterator<IntType> it1, VirtualAddressMemoryIterator<IntType> it2)
+template<typename IntType> bool operator==(const VirtualAddressMemoryIterator<IntType> &it1, const VirtualAddressMemoryIterator<IntType> &it2)
 {
     return it1.virtualAddress->equalTo(it2.virtualAddress.get());
 }
 
-template<typename IntType> bool operator!=(VirtualAddressMemoryIterator<IntType> it1, VirtualAddressMemoryIterator<IntType> it2)
+template<typename IntType> bool operator!=(const VirtualAddressMemoryIterator<IntType> &it1, const VirtualAddressMemoryIterator<IntType> &it2)
 {
     return !it1.virtualAddress->equalTo(it2.virtualAddress.get());
 }
@@ -288,21 +288,21 @@ struct ConstVirtualAddressMemoryIterator
 }; // struct ConstVirtualAddressMemoryIterator
 
 
-template<typename IntType> ConstVirtualAddressMemoryIterator<IntType> operator+(ConstVirtualAddressMemoryIterator<IntType> it, ptrdiff_t d) { auto cp = it.deepCopy(); cp += d; return cp; }
-template<typename IntType> ConstVirtualAddressMemoryIterator<IntType> operator+(ptrdiff_t d, ConstVirtualAddressMemoryIterator<IntType> it) { auto cp = it.deepCopy(); cp += d; return cp; }
-template<typename IntType> ConstVirtualAddressMemoryIterator<IntType> operator-(ConstVirtualAddressMemoryIterator<IntType> it, ptrdiff_t d) { auto cp = it.deepCopy(); cp -= d; return cp; }
+template<typename IntType> ConstVirtualAddressMemoryIterator<IntType> operator+(const ConstVirtualAddressMemoryIterator<IntType> &it, ptrdiff_t d) { auto cp = it.deepCopy(); cp += d; return cp; }
+template<typename IntType> ConstVirtualAddressMemoryIterator<IntType> operator+(ptrdiff_t d, const ConstVirtualAddressMemoryIterator<IntType> &it) { auto cp = it.deepCopy(); cp += d; return cp; }
+template<typename IntType> ConstVirtualAddressMemoryIterator<IntType> operator-(const ConstVirtualAddressMemoryIterator<IntType> &it, ptrdiff_t d) { auto cp = it.deepCopy(); cp -= d; return cp; }
 
-template<typename IntType> ptrdiff_t operator-(ConstVirtualAddressMemoryIterator<IntType> it1, ConstVirtualAddressMemoryIterator<IntType> it2)
+template<typename IntType> ptrdiff_t operator-(const ConstVirtualAddressMemoryIterator<IntType> &it1, const ConstVirtualAddressMemoryIterator<IntType> &it2)
 {
     return it2.virtualAddress->distanceTo(it1.virtualAddress.get());
 }
 
-template<typename IntType> bool operator==(ConstVirtualAddressMemoryIterator<IntType> it1, ConstVirtualAddressMemoryIterator<IntType> it2)
+template<typename IntType> bool operator==(const ConstVirtualAddressMemoryIterator<IntType> &it1, const ConstVirtualAddressMemoryIterator<IntType> &it2)
 {
     return it1.virtualAddress->equalTo(it2.virtualAddress.get());
 }
 
-template<typename IntType> bool operator!=(ConstVirtualAddressMemoryIterator<IntType> it1, ConstVirtualAddressMemoryIterator<IntType> it2)
+template<typename IntType> bool operator!=(const ConstVirtualAddressMemoryIterator<IntType> &it1, const ConstVirtualAddressMemoryIterator<IntType> &it2)
 {
     return !it1.virtualAddress->equalTo(it2.virtualAddress.get());
 }
