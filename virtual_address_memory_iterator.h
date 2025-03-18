@@ -126,7 +126,13 @@ struct VirtualAddressMemoryIterator
 
     bool getThrowOnWrapOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnAddressWrap)!=0; }
     bool getThrowOnWrapAccessOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnWrapedAddressAccess)!=0; }
-    void throwAddressWrap    () const { throwMemoryAccessError(MemoryAccessResultCode::addressWrap); }
+    void throwAddressWrap    () const
+    {
+        throwMemoryAccessError( MemoryAccessResultCode::addressWrap
+                              , std::string() // use default message
+                              , "address: " + std::string(*this) + ", linear: " + std::to_string(std::uint64_t(*this))
+                              );
+    }
 
     void inc     ()             { lastModificationWrapSign=virtualAddress->inc     ( ); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
     void dec     ()             { lastModificationWrapSign=virtualAddress->dec     ( ); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
@@ -264,7 +270,13 @@ struct ConstVirtualAddressMemoryIterator
 
     bool getThrowOnWrapOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnAddressWrap)!=0; }
     bool getThrowOnWrapAccessOption() const { return (memoryOptionFlags & MemoryOptionFlags::errorOnWrapedAddressAccess)!=0; }
-    void throwAddressWrap    () const { throwMemoryAccessError(MemoryAccessResultCode::addressWrap); }
+    void throwAddressWrap    () const
+    {
+        throwMemoryAccessError( MemoryAccessResultCode::addressWrap
+                              , std::string() // use default message
+                              , "address: " + std::string(*this) + ", linear: " + std::to_string(std::uint64_t(*this))
+                              );
+    }
 
     void inc     ()             { lastModificationWrapSign=virtualAddress->inc     ( ); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
     void dec     ()             { lastModificationWrapSign=virtualAddress->dec     ( ); if (lastModificationWrapSign && getThrowOnWrapOption()) throwAddressWrap(); }
