@@ -143,7 +143,9 @@ public:
 
     virtual uint64_t getLinearAddress() const override
     {
-        return ((m_segment&m_segmentMask)<<m_segmentShift) + (m_offset&m_offsetMask);
+        auto base = (m_segment&m_segmentMask)<<m_segmentShift;
+        auto offs = m_offset&m_offsetMask;
+        return base + offs;
     }
 
     virtual std::string toString() const override
