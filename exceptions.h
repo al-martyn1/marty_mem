@@ -73,20 +73,46 @@ MARTY_MEM_DECLARE_EXCEPTION_CLASS(base_error, std::runtime_error);
         MARTY_MEM_DECLARE_EXCEPTION_CLASS(memory_fill_error       , memory_access_error);
 
 
-// Кидает исключение, соответствующее коду ошибки. Если ошибки нет - не кидает
 inline
-void throwMemoryAccessError(MemoryAccessResultCode rc, const std::string &msg=std::string())
+std::string getDefaultMemoryAccessErrorMessage(MemoryAccessResultCode rc)
 {
     switch(rc)
     {
-        case MemoryAccessResultCode::invalid               : throw invalid_value(!msg.empty() ? msg : std::string("invalid MemoryAccessResultCode"));
+        case MemoryAccessResultCode::invalid               : return "MemoryAccessResultCode::invalid";
+        case MemoryAccessResultCode::accessGranted         : return "access granted";
+        case MemoryAccessResultCode::accessDenied          : return "access denied";
+        case MemoryAccessResultCode::unassignedMemoryAccess: return "unassigned memory access";
+        case MemoryAccessResultCode::unalignedMemoryAccess : return "unaligned memory access";
+        case MemoryAccessResultCode::addressWrap           : return "address/offset wrap occured";
+        case MemoryAccessResultCode::memoryFillError       : return "memory fill error";
+        default: return "unknown MemoryAccessResultCode";
+    }
+}
+
+inline
+std::string getMemoryAccessErrorMessage(MemoryAccessResultCode rc, const std::string &customMsg=std::string())
+{
+    return !customMsg.empty() ? customMsg : getDefaultMemoryAccessErrorMessage(rc);
+}
+
+// Кидает исключение, соответствующее коду ошибки. Если ошибки нет - не кидает
+inline
+void throwMemoryAccessError(MemoryAccessResultCode rc, const std::string &msg=std::string(), std::string msgExtra=std::string())
+{
+    if (!msgExtra.empty())
+        msgExtra = ": " + msgExtra;
+    switch(rc)
+    {
         case MemoryAccessResultCode::accessGranted         : break;
-        case MemoryAccessResultCode::accessDenied          : throw access_denied(!msg.empty() ? msg : std::string("access denied"));
-        case MemoryAccessResultCode::unassignedMemoryAccess: throw unassigned_memory_access(!msg.empty() ? msg : std::string("unassigned memory access"));
-        case MemoryAccessResultCode::unalignedMemoryAccess : throw unassigned_memory_access(!msg.empty() ? msg : std::string("unaligned memory access"));
-        case MemoryAccessResultCode::addressWrap           : throw address_wrap(!msg.empty() ? msg : std::string("address/offset wrap occured"));
-        case MemoryAccessResultCode::memoryFillError       : throw memory_fill_error(!msg.empty() ? msg : std::string("memory fill error"));
-        
+
+        case MemoryAccessResultCode::invalid               : throw invalid_value           (getMemoryAccessErrorMessage(rc, msg)+msgExtra);
+        case MemoryAccessResultCode::accessDenied          : throw access_denied           (getMemoryAccessErrorMessage(rc, msg)+msgExtra);
+        case MemoryAccessResultCode::unassignedMemoryAccess: throw unassigned_memory_access(getMemoryAccessErrorMessage(rc, msg)+msgExtra);
+        case MemoryAccessResultCode::unalignedMemoryAccess : throw unassigned_memory_access(getMemoryAccessErrorMessage(rc, msg)+msgExtra);
+        case MemoryAccessResultCode::addressWrap           : throw address_wrap            (getMemoryAccessErrorMessage(rc, msg)+msgExtra);
+        case MemoryAccessResultCode::memoryFillError       : throw memory_fill_error       (getMemoryAccessErrorMessage(rc, msg)+msgExtra);
+
+        default: return;
     }
 }
 
