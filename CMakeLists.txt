@@ -17,7 +17,9 @@ file(GLOB_RECURSE headers "${MODULE_ROOT}/*.h")
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Headers" FILES ${headers})
 
 
-add_library(${PROJECT_NAME} ${sources} ${headers})
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+add_library(${PROJECT_NAME} OBJECT ${sources} ${headers})
+add_library(marty::mem ALIAS ${PROJECT_NAME})
 
 # target_include_directories(${PROJECT_NAME} PRIVATE ${MODULE_ROOT}/..)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE WIN32_LEAN_AND_MEAN)
